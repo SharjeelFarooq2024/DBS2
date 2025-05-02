@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up - MyTutor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: #fdf7f2;
+      color: #222;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    header {
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    header .logo {
+      font-weight: 700;
+      font-size: 28px;
+      color: #00bfa5;
+    }
+    main {
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    main h2 {
+      margin-bottom: 25px;
+      font-weight: 700;
+      font-size: 24px;
+      text-align: center;
+      color: #222;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #555;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      padding: 12px 15px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    input[type="password"]:focus {
+      border-color: #00bfa5;
+      outline: none;
+    }
+    button {
+      padding: 12px 15px;
+      background: #00bfa5;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background: #009e8f;
+    }
+    .login-link {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+    }
+    .login-link a {
+      color: #00bfa5;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MyTutor</div>
+  </header>
+  <main>
+    <h2>Create your account</h2>
+    <form action="#" method="POST" id="signup-form">
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" placeholder="Your full name" required />
+      <label for="email">Email address</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com" required />
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter your password" required />
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required />
+      
+      <fieldset style="margin-bottom: 20px; border: none; padding: 0;">
+        <legend style="font-weight: 600; margin-bottom: 8px; color: #555;">I am a</legend>
+        <label>
+          <input type="radio" name="role" value="STUDENT" required checked />
+          Student
+        </label>
+        <label style="margin-left: 20px;">
+          <input type="radio" name="role" value="TUTOR" required />
+          Tutor
+        </label>
+      </fieldset>
+
+      <fieldset id="student-fields" style="display:none; margin-bottom: 20px; border: none; padding: 0;">
+        <legend style="font-weight: 600; margin-bottom: 8px; color: #555;">Student Information</legend>
+        <label for="grade">Grade</label>
+        <select id="grade" name="grade">
+          <option value="" disabled selected>Select your grade</option>
+          <option value="6">6th Grade</option>
+          <option value="7">7th Grade</option>
+          <option value="8">8th Grade</option>
+          <option value="9">9th Grade</option>
+          <option value="10">10th Grade</option>
+          <option value="11">11th Grade</option>
+          <option value="12">12th Grade</option>
+        </select>
+      </fieldset>
+
+      <fieldset id="tutor-fields" style="display:none; margin-bottom: 20px; border: none; padding: 0;">
+        <legend style="font-weight: 600; margin-bottom: 8px; color: #555;">Tutor Information</legend>
+        <label for="education">Education</label>
+        <input type="text" id="education" name="education" placeholder="Your highest education" />
+        <label for="subjects">Subjects you teach</label>
+        <input type="text" id="subjects" name="subjects" placeholder="e.g. Math, Physics" />
+      </fieldset>
+      
+      <button type="submit">Sign Up</button>
+    </form>
+    <div class="login-link">
+      Already have an account? <a href="login.html">Log in here</a>
+    </div>
+  </main>
+  <script>
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const studentFields = document.getElementById('student-fields');
+    const tutorFields = document.getElementById('tutor-fields');
+
+    roleRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.value === 'student' && radio.checked) {
+          studentFields.style.display = 'block';
+          tutorFields.style.display = 'none';
+          // Make student fields required
+          document.getElementById('grade').setAttribute('required', 'required');
+          document.getElementById('education').removeAttribute('required');
+          document.getElementById('subjects').removeAttribute('required');
+        } else if (radio.value === 'tutor' && radio.checked) {
+          tutorFields.style.display = 'block';
+          studentFields.style.display = 'none';
+          // Make tutor fields required
+          document.getElementById('education').setAttribute('required', 'required');
+          document.getElementById('subjects').setAttribute('required', 'required');
+          document.getElementById('grade').removeAttribute('required');
+        }
+      });
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+    }
+
+    // Add console.log to debug the form data
+    console.log('Password:', password);
+
+    const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        password: password,
+        role: document.querySelector('input[name="role"]:checked').value
+    };
+
+    // Add console.log to debug the request data
+    console.log('Form Data:', formData);
+
+    try {
+        const response = await fetch('/api/auth/register', {
+            method: 'POST',  // Add this
+            headers: {       // Add this
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+
+        const data = await response.json();
+        alert('Registration successful!');
+        window.location.href = '/login.html';
+    } catch (error) {
+        alert('Registration failed: ' + error.message);
+        console.error('Registration error:', error);
+    }
+});
+  </script>
+</body>
+</html>

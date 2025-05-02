@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutor Dashboard - MyTutor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: #fdf7f2;
+      color: #222;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    header .logo {
+      font-weight: 700;
+      font-size: 28px;
+      color: #00bfa5;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      font-size: 22px;
+      color: #00bfa5;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #555;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 15px;
+    }
+    button {
+      background: #00bfa5;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background: #009e8f;
+    }
+    .list {
+      margin-top: 10px;
+    }
+    .list-item {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .list-item button {
+      width: auto;
+      padding: 5px 10px;
+      margin: 0;
+      background: #ff5252;
+      font-size: 12px;
+    }
+    .requests {
+      margin-top: 20px;
+    }
+    .request-item {
+      background: #fff3e6;
+      border: 1px solid #ffd699;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+    }
+    .request-item .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .request-item .actions button {
+      width: auto;
+    }
+    .time-slots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .time-slot {
+      padding: 8px;
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .error-message {
+      color: #dc3545;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #ffe6e6;
+      border-radius: 4px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">MyTutor - Tutor Dashboard</div>
+  </header>
+
+  <div class="container">
+    <div>
+      <div class="card">
+        <h2>Manage Availability</h2>
+        <div class="error-message" id="combinedError"></div>
+        <div class="combined-form">
+          <label for="subject">Select Subject</label>
+          <select id="subject">
+            <option value="">Select a subject...</option>
+          </select>
+
+          <label for="day">Day</label>
+          <select id="day">
+            <option value="Monday">Monday</option>
+            <option value="Tuesday">Tuesday</option>
+            <option value="Wednesday">Wednesday</option>
+            <option value="Thursday">Thursday</option>
+            <option value="Friday">Friday</option>
+            <option value="Saturday">Saturday</option>
+            <option value="Sunday">Sunday</option>
+          </select>
+
+          <label for="time">Time</label>
+          <select id="time">
+            <option value="">Select time...</option>
+          </select>
+          <button onclick="addSubjectWithTimeSlot()">Add Subject with Time Slot</button>
+        </div>
+        <div class="list" id="combinedList"></div>
+      </div>
+
+      <div class="card">
+        <h2>Student Requests</h2>
+        <div id="requestsContainer" class="requests">
+          <!-- Student requests will appear here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const combinedList = document.getElementById('combinedList');
+    const requestsContainer = document.getElementById('requestsContainer');
+    const combinedError = document.getElementById('combinedError');
+    let tutorId;
+
+    // Initialize time slots
+    function initializeTimeSlots() {
+      const timeSelect = document.getElementById('time');
+      timeSelect.innerHTML = '<option value="">Select time...</option>';
+      for (let hour = 9; hour <= 17; hour++) {
+        const time = `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`;
+        const option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        timeSelect.appendChild(option);
+      }
+    }
+
+    // Load available subjects
+    async function loadSubjects() {
+      try {
+        const response = await fetch('/api/subjects');
+        if (!response.ok) {
+          throw new Error('Failed to fetch subjects');
+        }
+        const subjects = await response.json();
+        const select = document.getElementById('subject');
+        select.innerHTML = '<option value="">Select a subject...</option>';
+        if (Array.isArray(subjects)) {
+          subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.subjectId;
+            option.textContent = subject.name;
+            select.appendChild(option);
+          });
+        } else {
+          throw new Error('Invalid subjects data received');
+        }
+      } catch (error) {
+        console.error('Error loading subjects:', error);
+        showError(combinedError, 'Failed to load subjects: ' + error.message);
+      }
+    }
+
+    // Load tutor's profile including subjects and availability
+    async function loadTutorProfile() {
+      try {
+        const response = await fetch(`/api/tutor/${tutorId}/profile`);
+        const profile = await response.json();
+        
+        // Display existing subjects with their time slots
+        combinedList.innerHTML = '';
+        profile.subjects.forEach(subject => {
+          const matchingSlots = profile.availability.filter(slot => slot.subjectId === subject.subjectId);
+          const item = document.createElement('div');
+          item.className = 'list-item';
+          item.innerHTML = `
+            <div>
+              <strong>${subject.name}</strong>
+              ${matchingSlots.map(slot => 
+                `<div class="time-slot">${slot.dayOfWeek}: ${slot.timeSlot}</div>`
+              ).join('')}
+            </div>
+            <button onclick="removeSubjectWithSlots(this, ${subject.subjectId})">Remove</button>
+          `;
+          combinedList.appendChild(item);
+        });
+      } catch (error) {
+        console.error('Error loading tutor profile:', error);
+        showError(combinedError, 'Failed to load profile');
+      }
+    }
+
+    async function addSubjectWithTimeSlot() {
+      const subjectSelect = document.getElementById('subject');
+      const subjectId = subjectSelect.value;
+      const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
+      const day = document.getElementById('day').value;
+      const time = document.getElementById('time').value;
+
+      if (!subjectId || !day || !time) {
+        showError(combinedError, 'Please select subject, day, and time');
+        return;
+      }
+
+      try {
+        // First add the subject
+        const subjectResponse = await fetch('/api/tutor/add-subject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            tutorId: tutorId,
+            subjectId: subjectId 
+          })
+        });
+
+        // If the response is not ok and we can't parse it as JSON, throw an error
+        if (!subjectResponse.ok && subjectResponse.headers.get('content-type')?.includes('application/json')) {
+          const errorData = await subjectResponse.json();
+          throw new Error(errorData.error || 'Failed to add subject');
+        }
+
+        // Then add the availability
+        const availabilityResponse = await fetch('/api/tutor/add-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tutorId: tutorId,
+            day: day,
+            time: time,
+            subjectId: subjectId
+          })
+        });
+
+        if (!availabilityResponse.ok) {
+          const errorData = await availabilityResponse.json();
+          throw new Error(errorData.error || 'Failed to add availability');
+        }
+
+        // If both operations succeeded, update the UI
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div>
+            <strong>${subjectName}</strong>
+            <div class="time-slot">${day}: ${time}</div>
+          </div>
+          <button onclick="removeSubjectWithSlots(this, ${subjectId})">Remove</button>
+        `;
+        combinedList.appendChild(item);
+
+        // Reset time selection only, keep the subject selected
+        document.getElementById('day').value = 'Monday';
+        document.getElementById('time').value = '';
+      } catch (err) {
+        showError(combinedError, err.message);
+      }
+    }
+
+    async function removeSubjectWithSlots(button, subjectId) {
+      try {
+        const response = await fetch(`/api/tutor/remove-subject/${tutorId}/${subjectId}`, {
+          method: 'DELETE'
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to remove subject and time slots');
+        }
+
+        button.parentElement.remove();
+      } catch (error) {
+        showError(combinedError, error.message);
+      }
+    }
+
+    async function loadStudentRequests() {
+      try {
+        if (!tutorId) {
+          throw new Error('Tutor ID is not available');
+        }
+
+        const response = await fetch(`/api/tutor/${tutorId}/requests`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ error: 'Failed to fetch requests' }));
+          throw new Error(errorData.error || 'Failed to fetch requests');
+        }
+        
+        let requests;
+        try {
+          requests = await response.json();
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError);
+          throw new Error('Invalid response format from server');
+        }
+
+        if (!Array.isArray(requests)) {
+          throw new Error('Invalid response format: expected an array');
+        }
+
+        requestsContainer.innerHTML = '';
+        
+        if (requests.length === 0) {
+          requestsContainer.innerHTML = '<p class="no-requests">No pending requests.</p>';
+          return;
+        }
+
+        requests.forEach(request => {
+          const requestElement = document.createElement('div');
+          requestElement.className = 'request-item';
+          requestElement.innerHTML = `
+            <h3>Student: ${request.studentName || 'Unknown'}</h3>
+            <p>Subject: ${request.subject || 'Not specified'}</p>
+            <p>Description: ${request.description || 'No description provided'}</p>
+            <p>Status: ${request.status || 'PENDING'}</p>
+            ${request.status === 'PENDING' ? `
+              <div class="actions">
+                <button onclick="updateRequestStatus(${request.requestId}, 'ACCEPTED')" style="background: #28a745;">Accept</button>
+                <button onclick="updateRequestStatus(${request.requestId}, 'REJECTED')" style="background: #dc3545;">Reject</button>
+              </div>
+            ` : ''}
+          `;
+          requestsContainer.appendChild(requestElement);
+        });
+      } catch (error) {
+        console.error('Error loading requests:', error);
+        requestsContainer.innerHTML = `
+          <div class="error-message" style="display: block;">
+            ${error.message || 'Failed to load requests. Please try again later.'}
+          </div>
+        `;
+      }
+    }
+
+    async function updateRequestStatus(requestId, status) {
+      try {
+        const response = await fetch(`/api/tutor/requests/${requestId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            tutorId: tutorId,
+            status: status
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update request status');
+        }
+
+        // Refresh the requests list
+        loadStudentRequests();
+      } catch (error) {
+        console.error('Error updating request:', error);
+        showError(combinedError, 'Failed to update request: ' + error.message);
+      }
+    }
+
+    function showError(element, message) {
+      element.textContent = message;
+      element.style.display = 'block';
+      setTimeout(() => {
+        element.style.display = 'none';
+      }, 5000);
+    }
+
+    // Initialize dashboard
+    window.onload = function() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || user.role !== 'TUTOR') {
+        window.location.href = '/login.html';
+        return;
+      }
+      tutorId = user.id;
+      initializeTimeSlots();
+      loadSubjects();
+      loadTutorProfile();
+      loadStudentRequests();
+    };
+  </script>
+</body>
+</html>

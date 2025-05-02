@@ -1,0 +1,151 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyTutor Style Landing Page</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+    body {
+      background: #fdf7f2;
+      color: #222;
+      line-height: 1.6;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: #fdf7f2;
+    }
+    header nav a {
+      margin: 0 15px;
+      color: #333;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    header .actions button {
+      margin-left: 15px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .login-btn {
+      background: #eae6e1;
+    }
+    .signup-btn {
+      background: #00bfa5;
+      color: #fff;
+    }
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 60px 80px;
+    }
+    .hero-text {
+      max-width: 600px;
+    }
+    .hero-text h1 {
+      font-size: 48px;
+      font-weight: 700;
+    }
+    .hero-text p {
+      margin: 20px 0;
+      color: #555;
+      font-size: 18px;
+    }
+    .search-box {
+      display: flex;
+      margin-top: 20px;
+    }
+    .search-box input {
+      padding: 10px;
+      font-size: 16px;
+      flex: 1;
+      border: 1px solid #ccc;
+      border-radius: 5px 0 0 5px;
+    }
+    .search-box button {
+      padding: 10px 20px;
+      background: #00bfa5;
+      color: white;
+      border: none;
+      border-radius: 0 5px 5px 0;
+      cursor: pointer;
+    }
+    .hero-img img {
+      max-width: 400px;
+      border-radius: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      padding: 40px 20px;
+      background: #fff;
+      margin-top: 40px;
+      text-align: center;
+    }
+    .stats div {
+      font-size: 16px;
+    }
+    .stats span {
+      font-weight: bold;
+      font-size: 20px;
+      display: block;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo"><strong>MyTutor</strong></div>
+    <nav>
+      <a href="#">Find a tutor</a>
+      <a href="#">How it works</a>
+      <a href="#">Become a tutor</a>
+    </nav>
+    <div class="actions">
+<a href="login.html"><button class="login-btn">Log in</button></a>
+      <a href="signup.html"><button class="signup-btn">Sign up</button></a>
+    </div>
+  </header>
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Online tutoring that releases potential</h1>
+      <p>We can't stop you worrying about your child. But our expert tutors can help their grades and confidence soar - and help you worry a little less.</p>
+      <div class="search-box">
+        <input type="text" placeholder="Search a subject" />
+        <button>Get Started</button>
+      </div>
+    </div>
+    <div class="hero-img">
+      <img src="https://via.placeholder.com/400x280.png?text=Tutoring+Session" alt="Tutoring Image" />
+    </div>
+  </section>
+  <section class="stats">
+    <div>
+      Excellent ⭐⭐⭐⭐⭐<br /><span>426,535+ 5-star reviews</span>
+    </div>
+    <div>
+      <span>1500</span> schools trust us
+    </div>
+    <div>
+      <span>30+</span> subjects available
+    </div>
+    <div>
+      <span>255,203+</span> students helped
+    </div>
+  </section>
+</body>
+</html>
