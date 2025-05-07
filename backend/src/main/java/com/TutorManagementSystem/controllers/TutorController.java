@@ -50,29 +50,41 @@ public class TutorController {
     }
 
     @PostMapping("/add-availability")
-    public ResponseEntity<?> addAvailability(@RequestBody Map<String, String> body) {
+    public ResponseEntity<?> addAvailability(@RequestBody Map<String, Object> body) {
         try {
-            Long tutorId = Long.parseLong(body.get("tutorId"));
-            Long subjectId = Long.parseLong(body.get("subjectId"));
-            String day = body.get("day");
-            String time = body.get("time");
+            // Debug logging to see what's coming in
+            System.out.println("Request body: " + body);
             
-            if (day == null || time == null || subjectId == null) {
-                throw new RuntimeException("Day, time, and subject are required");
+            // Extract parameters correctly
+            Long tutorId = Long.valueOf(body.get("tutorId").toString());
+            Long subjectId = Long.valueOf(body.get("subjectId").toString());
+            String day = (String) body.get("day");
+            // Accept either "time" or "timeSlot"
+            String time = body.get("time") != null ? (String) body.get("time") : (String) body.get("timeSlot");
+            
+            // Validate inputs
+            if (day == null || time == null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Day and time are required");
+                return ResponseEntity.badRequest().body(response);
             }
             
+            // Call service
             tutorService.addAvailability(tutorId, subjectId, day, time);
             
+            // Return success
             Map<String, String> response = new HashMap<>();
             response.put("message", "Availability added successfully");
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
+            e.printStackTrace();
             Map<String, String> response = new HashMap<>();
             response.put("error", e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
+            e.printStackTrace();
             Map<String, String> response = new HashMap<>();
-            response.put("error", "An unexpected error occurred");
+            response.put("error", "An unexpected error occurred: " + e.getMessage());
             return ResponseEntity.internalServerError().body(response);
         }
     }
@@ -106,18 +118,16 @@ public class TutorController {
             
             List<Map<String, Object>> formattedRequests = new ArrayList<>();
             if (requests != null) {
-                formattedRequests = requests.stream()
-                    .map(req -> {
-                        Map<String, Object> formatted = new HashMap<>();
-                        formatted.put("requestId", req.getRequestId());
-                        formatted.put("studentName", req.getStudent() != null ? req.getStudent().getName() : "Unknown");
-                        formatted.put("subject", req.getSubject() != null ? req.getSubject().getName() : "Not specified");
-                        formatted.put("description", req.getDescription() != null ? req.getDescription() : "");
-                        formatted.put("createdAt", req.getCreatedAt() != null ? req.getCreatedAt().toString() : "");
-                        formatted.put("status", req.getStatus() != null ? req.getStatus() : "PENDING");
-                        return formatted;
-                    })
-                    .collect(Collectors.toList());
+                formattedRequests = requests.stream().map(request -> {
+                    Map<String, Object> formatted = new HashMap<>();
+                    formatted.put("requestId", request.getRequestId());
+                    formatted.put("studentName", studentRequestService.getStudentName(request.getStudent().getId()));
+                    formatted.put("subjectName", request.getSubject().getName());
+                    formatted.put("description", request.getDescription());
+                    formatted.put("status", request.getStatus());
+                    formatted.put("createdAt", request.getCreatedAt());
+                    return formatted;
+                }).collect(Collectors.toList());
             }
             
             return ResponseEntity.ok(formattedRequests);
@@ -139,7 +149,7 @@ public class TutorController {
             
             StudentRequest request = studentRequestService.updateRequestStatus(requestId, status);
             
-            if (status.equals("ACCEPTED")) {
+            if ("ACCEPTED".equals(status)) {
                 Job job = new Job();
                 job.setRequest(request);
                 job.setTutorId(tutorId);

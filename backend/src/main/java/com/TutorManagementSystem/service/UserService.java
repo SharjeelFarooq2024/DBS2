@@ -7,6 +7,8 @@ import com.TutorManagementSystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
 
@@ -14,23 +16,42 @@ public class UserService {
     private UserRepository userRepository;
 
     public LoginResponse login(String email, String password) {
-        // Find user by email
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        try {
+            // Add debugging for finding the user
+            System.out.println("Attempting to find user with email: " + email);
+            
+            Optional<User> userOpt = userRepository.findByEmail(email);
+            if (!userOpt.isPresent()) {
+                System.out.println("User not found with email: " + email);
+                throw new RuntimeException("User not found with email: " + email);
+            }
+            
+            User user = userOpt.get();
+            
+            // Debug password check
+            System.out.println("Found user: " + user.getName() + " with role: " + user.getRole());
+            System.out.println("Password check: Input=" + password + ", Stored=" + user.getPassword());
+            
+            if (!password.equals(user.getPassword())) {
+                System.out.println("Password mismatch for user: " + email);
+                throw new RuntimeException("Invalid password");
+            }
 
-        // Check if password matches
-        if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("Invalid email or password");
+            // Success - create response
+            LoginResponse response = new LoginResponse();
+            response.setId(user.getId());
+            response.setName(user.getName());
+            response.setEmail(user.getEmail());
+            response.setRole(user.getRole());
+            
+            System.out.println("Login successful for: " + email);
+            return response;
+        } catch (Exception e) {
+            // Log the error for server-side debugging
+            System.err.println("Login error: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Login failed: " + e.getMessage());
         }
-
-        // Create LoginResponse
-        LoginResponse response = new LoginResponse();
-        response.setId(user.getId());
-        response.setName(user.getName());
-        response.setEmail(user.getEmail());
-        response.setRole(user.getRole());
-
-        return response;
     }
 
     public User findById(Long id) {

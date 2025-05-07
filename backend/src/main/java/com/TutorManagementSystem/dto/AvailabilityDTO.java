@@ -1,28 +1,30 @@
 package com.TutorManagementSystem.dto;
 
 public class AvailabilityDTO {
-    private Long id;
+    private Long availabilityId;
     private Long tutorId;
     private Long subjectId;
+    private String subjectName;
     private String dayOfWeek;
     private String timeSlot;
 
     public AvailabilityDTO() {}
 
-    public AvailabilityDTO(Long id, Long tutorId, Long subjectId, String dayOfWeek, String timeSlot) {
-        this.id = id;
+    public AvailabilityDTO(Long availabilityId, Long tutorId, Long subjectId, String subjectName, String dayOfWeek, String timeSlot) {
+        this.availabilityId = availabilityId;
         this.tutorId = tutorId;
         this.subjectId = subjectId;
+        this.subjectName = subjectName;
         this.dayOfWeek = dayOfWeek;
         this.timeSlot = timeSlot;
     }
 
-    public Long getId() {
-        return id;
+    public Long getAvailabilityId() {
+        return availabilityId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setAvailabilityId(Long availabilityId) {
+        this.availabilityId = availabilityId;
     }
 
     public Long getTutorId() {
@@ -39,6 +41,14 @@ public class AvailabilityDTO {
 
     public void setSubjectId(Long subjectId) {
         this.subjectId = subjectId;
+    }
+
+    public String getSubjectName() {
+        return subjectName;
+    }
+
+    public void setSubjectName(String subjectName) {
+        this.subjectName = subjectName;
     }
 
     public String getDayOfWeek() {

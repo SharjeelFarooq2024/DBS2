@@ -100,6 +100,12 @@
     .signup-link a:hover {
       text-decoration: underline;
     }
+    .error-message {
+      display: none;
+      color: red;
+      margin-bottom: 20px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -113,6 +119,7 @@
       <input type="email" id="email" name="email" placeholder="you@example.com" required />
       <label for="password">Password</label>
       <input type="password" id="password" name="password" placeholder="Enter your password" required />
+      <div id="errorMessage" class="error-message"></div>
       <button type="submit">Log In</button>
     </form>
     <div class="signup-link">
@@ -121,40 +128,60 @@
   </main>
   <script>
 function handleLogin(event) {
-    event.preventDefault();
-    
-    const loginData = {
-        email: document.getElementById('email').value,
-        password: document.getElementById('password').value
-    };
+  event.preventDefault();
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const errorMessage = document.getElementById('errorMessage');
+  
+  // Add this to the beginning of your handleLogin function
+  console.log("Login attempt with:", { email, password });
 
-    fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(loginData)
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Login failed');
-        }
-        return response.json();
-    })
-    .then(data => {
-        localStorage.setItem('user', JSON.stringify(data));
-        // Redirect based on role
-        if (data.role === 'STUDENT') {
-            window.location.href = '/studentdashboard.html';
-        } else if (data.role === 'TUTOR') {
-            window.location.href = '/tutorDashboard.html';
-        } else {
-            throw new Error('Invalid user role');
-        }
-    })
-    .catch(error => {
-        alert('Login failed: ' + error.message);
-    });
+  // Basic validation
+  if (!email || !password) {
+    errorMessage.textContent = "Please fill in all fields";
+    errorMessage.style.display = "block";
+    return;
+  }
+  
+  fetch('/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  })
+  .then(response => {
+    if (!response.ok) {
+      return response.json().then(data => {
+        throw new Error(data.error || 'Invalid email or password');
+      });
+    }
+    return response.json();
+  })
+  .then(data => {
+    // Store user data in localStorage
+    localStorage.setItem('user', JSON.stringify({
+      id: data.id,
+      name: data.name,
+      email: data.email,
+      role: data.role
+    }));
+    
+    // Redirect based on user role
+    if (data.role === 'STUDENT') {
+      window.location.href = '/studentdashboard.html';
+    } else if (data.role === 'TUTOR') {
+      window.location.href = '/tutorDashboard.html';
+    } else {
+      window.location.href = '/index.html';
+    }
+  })
+  .catch(error => {
+    console.error('Login error:', error);
+    // Show detailed error information
+    errorMessage.textContent = error.message || 'Login failed. Please check console for details.';
+    errorMessage.style.display = "block";
+  });
 }
 </script>
 </body>

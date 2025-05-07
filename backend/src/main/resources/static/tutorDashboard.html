@@ -141,15 +141,16 @@
     <div>
       <div class="card">
         <h2>Manage Availability</h2>
-        <div class="error-message" id="combinedError"></div>
-        <div class="combined-form">
-          <label for="subject">Select Subject</label>
-          <select id="subject">
-            <option value="">Select a subject...</option>
+        <div id="combinedError" class="error-message"></div>
+        <form id="availabilityForm">
+          <label for="subject">Subject:</label>
+          <select id="subject" name="subject">
+            <option value="">Select subject...</option>
           </select>
-
-          <label for="day">Day</label>
-          <select id="day">
+          
+          <label for="day">Day:</label>
+          <select id="day" name="day">
+            <option value="">Select day...</option>
             <option value="Monday">Monday</option>
             <option value="Tuesday">Tuesday</option>
             <option value="Wednesday">Wednesday</option>
@@ -158,20 +159,25 @@
             <option value="Saturday">Saturday</option>
             <option value="Sunday">Sunday</option>
           </select>
-
-          <label for="time">Time</label>
-          <select id="time">
+          
+          <label for="time">Time Slot:</label>
+          <select id="time" name="time">
             <option value="">Select time...</option>
           </select>
-          <button onclick="addSubjectWithTimeSlot()">Add Subject with Time Slot</button>
+          
+          <button type="button" onclick="addSubjectWithTimeSlot()">Add Time Slot</button>
+        </form>
+        
+        <h3 style="margin-top: 20px;">Your Availability</h3>
+        <div id="combinedList" class="list">
+          <!-- Time slots will appear here -->
         </div>
-        <div class="list" id="combinedList"></div>
       </div>
 
       <div class="card">
         <h2>Student Requests</h2>
         <div id="requestsContainer" class="requests">
-          <!-- Student requests will appear here -->
+          <!-- Requests will appear here -->
         </div>
       </div>
     </div>
@@ -185,13 +191,31 @@
 
     // Initialize time slots
     function initializeTimeSlots() {
+      const daySelect = document.getElementById('day');
       const timeSelect = document.getElementById('time');
+      
+      // Reset selects
+      daySelect.innerHTML = `
+        <option value="">Select day...</option>
+        <option value="Monday">Monday</option>
+        <option value="Tuesday">Tuesday</option>
+        <option value="Wednesday">Wednesday</option>
+        <option value="Thursday">Thursday</option>
+        <option value="Friday">Friday</option>
+        <option value="Saturday">Saturday</option>
+        <option value="Sunday">Sunday</option>
+      `;
+      
       timeSelect.innerHTML = '<option value="">Select time...</option>';
+      
+      // Create time slots from 9 AM to 5 PM
       for (let hour = 9; hour <= 17; hour++) {
-        const time = `${hour.toString().padStart(2, '0')}:00 - ${(hour + 1).toString().padStart(2, '0')}:00`;
+        const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
+        const ampm = hour < 12 ? 'AM' : 'PM';
+        const timeSlot = `${formattedHour}:00 ${ampm}`;
         const option = document.createElement('option');
-        option.value = time;
-        option.textContent = time;
+        option.value = timeSlot;
+        option.textContent = timeSlot;
         timeSelect.appendChild(option);
       }
     }
@@ -201,24 +225,23 @@
       try {
         const response = await fetch('/api/subjects');
         if (!response.ok) {
-          throw new Error('Failed to fetch subjects');
+          throw new Error('Failed to load subjects');
         }
+        
         const subjects = await response.json();
-        const select = document.getElementById('subject');
-        select.innerHTML = '<option value="">Select a subject...</option>';
-        if (Array.isArray(subjects)) {
-          subjects.forEach(subject => {
-            const option = document.createElement('option');
-            option.value = subject.subjectId;
-            option.textContent = subject.name;
-            select.appendChild(option);
-          });
-        } else {
-          throw new Error('Invalid subjects data received');
-        }
+        const subjectSelect = document.getElementById('subject');
+        
+        subjectSelect.innerHTML = '<option value="">Select subject...</option>';
+        
+        subjects.forEach(subject => {
+          const option = document.createElement('option');
+          option.value = subject.subjectId;
+          option.textContent = subject.name;
+          subjectSelect.appendChild(option);
+        });
       } catch (error) {
         console.error('Error loading subjects:', error);
-        showError(combinedError, 'Failed to load subjects: ' + error.message);
+        showError(document.getElementById('combinedError'), 'Failed to load subjects');
       }
     }
 
@@ -226,93 +249,106 @@
     async function loadTutorProfile() {
       try {
         const response = await fetch(`/api/tutor/${tutorId}/profile`);
-        const profile = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to load profile');
+        }
         
-        // Display existing subjects with their time slots
+        const data = await response.json();
+        const combinedList = document.getElementById('combinedList');
         combinedList.innerHTML = '';
-        profile.subjects.forEach(subject => {
-          const matchingSlots = profile.availability.filter(slot => slot.subjectId === subject.subjectId);
-          const item = document.createElement('div');
-          item.className = 'list-item';
-          item.innerHTML = `
-            <div>
-              <strong>${subject.name}</strong>
-              ${matchingSlots.map(slot => 
-                `<div class="time-slot">${slot.dayOfWeek}: ${slot.timeSlot}</div>`
-              ).join('')}
-            </div>
-            <button onclick="removeSubjectWithSlots(this, ${subject.subjectId})">Remove</button>
-          `;
-          combinedList.appendChild(item);
-        });
+        
+        // Group availability by subject
+        const availabilityBySubject = {};
+        
+        if (data.availability && data.availability.length > 0) {
+          data.availability.forEach(slot => {
+            const subjectId = slot.subjectId;
+            if (!availabilityBySubject[subjectId]) {
+              availabilityBySubject[subjectId] = [];
+            }
+            availabilityBySubject[subjectId].push(slot);
+          });
+          
+          // Match subjects with availability
+          if (data.subjects && data.subjects.length > 0) {
+            data.subjects.forEach(subject => {
+              const slots = availabilityBySubject[subject.subject_id] || [];
+              
+              const subjectItem = document.createElement('div');
+              subjectItem.className = 'list-item';
+              subjectItem.innerHTML = `
+                <div>
+                  <strong>${subject.subjectName}</strong>
+                  <div class="time-slots">
+                    ${slots.map(slot => 
+                      `<div class="time-slot">${slot.dayOfWeek} at ${slot.timeSlot}</div>`
+                    ).join('')}
+                  </div>
+                </div>
+              `;
+              combinedList.appendChild(subjectItem);
+            });
+          }
+        } else {
+          combinedList.innerHTML = '<p>No availability set yet. Add time slots above.</p>';
+        }
       } catch (error) {
-        console.error('Error loading tutor profile:', error);
-        showError(combinedError, 'Failed to load profile');
+        console.error('Error loading profile:', error);
+        showError(document.getElementById('combinedError'), 'Failed to load profile');
       }
     }
 
     async function addSubjectWithTimeSlot() {
       const subjectSelect = document.getElementById('subject');
       const subjectId = subjectSelect.value;
-      const subjectName = subjectSelect.options[subjectSelect.selectedIndex].text;
       const day = document.getElementById('day').value;
       const time = document.getElementById('time').value;
+      const combinedError = document.getElementById('combinedError');
 
       if (!subjectId || !day || !time) {
-        showError(combinedError, 'Please select subject, day, and time');
+        showError(combinedError, 'Please select a subject, day and time');
         return;
       }
 
+      console.log("Adding availability:", { tutorId, subjectId, day, time });
+
       try {
-        // First add the subject
-        const subjectResponse = await fetch('/api/tutor/add-subject', {
+        const response = await fetch('/api/tutor/add-availability', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            tutorId: tutorId,
-            subjectId: subjectId 
-          })
-        });
-
-        // If the response is not ok and we can't parse it as JSON, throw an error
-        if (!subjectResponse.ok && subjectResponse.headers.get('content-type')?.includes('application/json')) {
-          const errorData = await subjectResponse.json();
-          throw new Error(errorData.error || 'Failed to add subject');
-        }
-
-        // Then add the availability
-        const availabilityResponse = await fetch('/api/tutor/add-availability', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             tutorId: tutorId,
-            day: day,
-            time: time,
-            subjectId: subjectId
+            subjectId: subjectId, // Make sure this is included
+            day: day,            // Make sure this is included
+            time: time           // Make sure this is included
           })
         });
 
-        if (!availabilityResponse.ok) {
-          const errorData = await availabilityResponse.json();
-          throw new Error(errorData.error || 'Failed to add availability');
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          console.error("Error parsing JSON response:", e);
+          throw new Error("Server returned an invalid response");
         }
 
-        // If both operations succeeded, update the UI
-        const item = document.createElement('div');
-        item.className = 'list-item';
-        item.innerHTML = `
-          <div>
-            <strong>${subjectName}</strong>
-            <div class="time-slot">${day}: ${time}</div>
-          </div>
-          <button onclick="removeSubjectWithSlots(this, ${subjectId})">Remove</button>
-        `;
-        combinedList.appendChild(item);
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to add time slot');
+        }
 
-        // Reset time selection only, keep the subject selected
-        document.getElementById('day').value = 'Monday';
+        console.log('Success:', data);
+        
+        // Reset form fields
+        document.getElementById('day').value = '';
         document.getElementById('time').value = '';
+        
+        // Refresh the availability display
+        loadTutorProfile();
+        
       } catch (err) {
+        console.error('Error adding time slot:', err);
         showError(combinedError, err.message);
       }
     }
@@ -431,6 +467,7 @@
         window.location.href = '/login.html';
         return;
       }
+      
       tutorId = user.id;
       initializeTimeSlots();
       loadSubjects();

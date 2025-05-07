@@ -24,7 +24,7 @@ public class Availability {
     @Column(name = "time_slot", nullable = false)
     private String timeSlot;
 
-    // Getters and Setters
+    // Getters and setters
     public Long getId() {
         return id;
     }

@@ -1,6 +1,7 @@
 package com.TutorManagementSystem.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.TutorManagementSystem.dto.LoginRequest;
@@ -11,6 +12,8 @@ import com.TutorManagementSystem.repository.UserRepository;
 import com.TutorManagementSystem.service.UserService;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -49,20 +52,14 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        if (!user.getPassword().equals(loginRequest.getPassword())) {
-            throw new RuntimeException("Invalid password");
+        try {
+            LoginResponse response = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
         }
-
-        LoginResponse response = new LoginResponse();
-        response.setId(user.getId());
-        response.setEmail(user.getEmail());
-        response.setName(user.getName());
-        response.setRole(user.getRole());
-
-        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/profile/{id}")
