@@ -30,8 +30,14 @@ public class SubjectController {
     @GetMapping("/subjects")
     public ResponseEntity<List<Subject>> getAllSubjects() {
         try {
+            // Add debug logging
+            System.out.println("Getting all subjects");
+            
             List<Subject> subjects = subjectRepository.findAll();
-            // Always return OK with the list, even if empty
+            
+            // Log the number of subjects found
+            System.out.println("Found " + subjects.size() + " subjects");
+            
             return ResponseEntity.ok(subjects);
         } catch (Exception e) {
             e.printStackTrace();

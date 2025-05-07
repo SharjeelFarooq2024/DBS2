@@ -184,28 +184,31 @@
   </div>
 
   <script>
-    const combinedList = document.getElementById('combinedList');
-    const requestsContainer = document.getElementById('requestsContainer');
-    const combinedError = document.getElementById('combinedError');
     let tutorId;
+
+    // SINGLE window.onload function - remove any duplicates
+    window.onload = function() {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user || user.role !== 'TUTOR') {
+        window.location.href = '/login.html';
+        return;
+      }
+      
+      tutorId = user.id; // Set tutorId
+      console.log("Logged in tutor ID:", tutorId);
+      
+      // Initialize time slots
+      initializeTimeSlots();
+      
+      // Load subjects and profile data
+      loadSubjects();
+      loadTutorProfile();
+      loadStudentRequests();
+    };
 
     // Initialize time slots
     function initializeTimeSlots() {
-      const daySelect = document.getElementById('day');
       const timeSelect = document.getElementById('time');
-      
-      // Reset selects
-      daySelect.innerHTML = `
-        <option value="">Select day...</option>
-        <option value="Monday">Monday</option>
-        <option value="Tuesday">Tuesday</option>
-        <option value="Wednesday">Wednesday</option>
-        <option value="Thursday">Thursday</option>
-        <option value="Friday">Friday</option>
-        <option value="Saturday">Saturday</option>
-        <option value="Sunday">Sunday</option>
-      `;
-      
       timeSelect.innerHTML = '<option value="">Select time...</option>';
       
       // Create time slots from 9 AM to 5 PM
@@ -223,12 +226,15 @@
     // Load available subjects
     async function loadSubjects() {
       try {
+        console.log("Loading subjects...");
         const response = await fetch('/api/subjects');
         if (!response.ok) {
-          throw new Error('Failed to load subjects');
+          throw new Error('Failed to load subjects: ' + response.statusText);
         }
         
         const subjects = await response.json();
+        console.log("Subjects loaded:", subjects);
+        
         const subjectSelect = document.getElementById('subject');
         
         subjectSelect.innerHTML = '<option value="">Select subject...</option>';
@@ -241,11 +247,67 @@
         });
       } catch (error) {
         console.error('Error loading subjects:', error);
-        showError(document.getElementById('combinedError'), 'Failed to load subjects');
+        showError(document.getElementById('combinedError'), 'Failed to load subjects: ' + error.message);
       }
     }
 
-    // Load tutor's profile including subjects and availability
+    // Function to add availability
+    async function addSubjectWithTimeSlot() {
+      const subjectSelect = document.getElementById('subject');
+      const subjectId = subjectSelect.value;
+      const day = document.getElementById('day').value;
+      const time = document.getElementById('time').value;
+      const combinedError = document.getElementById('combinedError');
+
+      if (!subjectId || !day || !time) {
+        showError(combinedError, 'Please select a subject, day and time');
+        return;
+      }
+
+      console.log("Adding availability:", { tutorId, subjectId, day, time });
+
+      try {
+        const response = await fetch('/api/tutor/add-availability', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tutorId: tutorId,
+            subjectId: subjectId,
+            day: day,
+            time: time
+          })
+        });
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          console.error("Error parsing JSON response:", e);
+          throw new Error("Server returned an invalid response");
+        }
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to add time slot');
+        }
+
+        console.log('Success:', data);
+        
+        // Reset form fields
+        document.getElementById('day').value = '';
+        document.getElementById('time').value = '';
+        
+        // Refresh the availability display
+        loadTutorProfile();
+        
+      } catch (err) {
+        console.error('Error adding time slot:', err);
+        showError(combinedError, err.message);
+      }
+    }
+
+    // Load tutor profile including subjects and availability
     async function loadTutorProfile() {
       try {
         const response = await fetch(`/api/tutor/${tutorId}/profile`);
@@ -298,101 +360,15 @@
       }
     }
 
-    async function addSubjectWithTimeSlot() {
-      const subjectSelect = document.getElementById('subject');
-      const subjectId = subjectSelect.value;
-      const day = document.getElementById('day').value;
-      const time = document.getElementById('time').value;
-      const combinedError = document.getElementById('combinedError');
-
-      if (!subjectId || !day || !time) {
-        showError(combinedError, 'Please select a subject, day and time');
-        return;
-      }
-
-      console.log("Adding availability:", { tutorId, subjectId, day, time });
-
-      try {
-        const response = await fetch('/api/tutor/add-availability', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            tutorId: tutorId,
-            subjectId: subjectId, // Make sure this is included
-            day: day,            // Make sure this is included
-            time: time           // Make sure this is included
-          })
-        });
-
-        let data;
-        try {
-          data = await response.json();
-        } catch (e) {
-          console.error("Error parsing JSON response:", e);
-          throw new Error("Server returned an invalid response");
-        }
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to add time slot');
-        }
-
-        console.log('Success:', data);
-        
-        // Reset form fields
-        document.getElementById('day').value = '';
-        document.getElementById('time').value = '';
-        
-        // Refresh the availability display
-        loadTutorProfile();
-        
-      } catch (err) {
-        console.error('Error adding time slot:', err);
-        showError(combinedError, err.message);
-      }
-    }
-
-    async function removeSubjectWithSlots(button, subjectId) {
-      try {
-        const response = await fetch(`/api/tutor/remove-subject/${tutorId}/${subjectId}`, {
-          method: 'DELETE'
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to remove subject and time slots');
-        }
-
-        button.parentElement.remove();
-      } catch (error) {
-        showError(combinedError, error.message);
-      }
-    }
-
     async function loadStudentRequests() {
       try {
-        if (!tutorId) {
-          throw new Error('Tutor ID is not available');
-        }
-
         const response = await fetch(`/api/tutor/${tutorId}/requests`);
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ error: 'Failed to fetch requests' }));
-          throw new Error(errorData.error || 'Failed to fetch requests');
+          throw new Error('Failed to load student requests');
         }
         
-        let requests;
-        try {
-          requests = await response.json();
-        } catch (parseError) {
-          console.error('JSON Parse Error:', parseError);
-          throw new Error('Invalid response format from server');
-        }
-
-        if (!Array.isArray(requests)) {
-          throw new Error('Invalid response format: expected an array');
-        }
-
+        const requests = await response.json();
+        const requestsContainer = document.getElementById('requestsContainer');
         requestsContainer.innerHTML = '';
         
         if (requests.length === 0) {
@@ -407,23 +383,15 @@
             <h3>Student: ${request.studentName || 'Unknown'}</h3>
             <p>Subject: ${request.subject || 'Not specified'}</p>
             <p>Description: ${request.description || 'No description provided'}</p>
-            <p>Status: ${request.status || 'PENDING'}</p>
-            ${request.status === 'PENDING' ? `
-              <div class="actions">
-                <button onclick="updateRequestStatus(${request.requestId}, 'ACCEPTED')" style="background: #28a745;">Accept</button>
-                <button onclick="updateRequestStatus(${request.requestId}, 'REJECTED')" style="background: #dc3545;">Reject</button>
-              </div>
-            ` : ''}
+            <div class="actions">
+              <button onclick="updateRequestStatus(${request.requestId}, 'ACCEPTED')">Accept</button>
+              <button onclick="updateRequestStatus(${request.requestId}, 'REJECTED')" style="background: #f44336;">Reject</button>
+            </div>
           `;
           requestsContainer.appendChild(requestElement);
         });
       } catch (error) {
-        console.error('Error loading requests:', error);
-        requestsContainer.innerHTML = `
-          <div class="error-message" style="display: block;">
-            ${error.message || 'Failed to load requests. Please try again later.'}
-          </div>
-        `;
+        console.error('Error loading student requests:', error);
       }
     }
 
@@ -434,46 +402,27 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            tutorId: tutorId,
-            status: status
-          })
+          body: JSON.stringify({ status })
         });
-
+        
         if (!response.ok) {
           throw new Error('Failed to update request status');
         }
-
-        // Refresh the requests list
+        
         loadStudentRequests();
       } catch (error) {
-        console.error('Error updating request:', error);
-        showError(combinedError, 'Failed to update request: ' + error.message);
+        console.error('Error updating request status:', error);
       }
     }
 
     function showError(element, message) {
       element.textContent = message;
       element.style.display = 'block';
+      
       setTimeout(() => {
         element.style.display = 'none';
       }, 5000);
     }
-
-    // Initialize dashboard
-    window.onload = function() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user || user.role !== 'TUTOR') {
-        window.location.href = '/login.html';
-        return;
-      }
-      
-      tutorId = user.id;
-      initializeTimeSlots();
-      loadSubjects();
-      loadTutorProfile();
-      loadStudentRequests();
-    };
   </script>
 </body>
 </html>

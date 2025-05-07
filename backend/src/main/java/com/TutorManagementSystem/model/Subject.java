@@ -1,5 +1,6 @@
 package com.TutorManagementSystem.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import jakarta.persistence.*;
 
@@ -15,9 +16,11 @@ public class Subject {
 
     private String description;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "subject")
     private List<StudentSubject> studentSubjects;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "subject")
     private List<TutorSubject> tutorSubjects;
 

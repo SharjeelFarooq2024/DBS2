@@ -49,7 +49,7 @@ public class JobService {
 
     public String getTutorName(Long tutorId) {
         return tutorRepo.findById(tutorId)
-            .map(tutor -> tutor.getUser().getName())
+            .map(tutor -> tutor.getName())  // Use tutor.getName() directly instead of tutor.getUser().getName()
             .orElse("Unknown Tutor");
     }
 }

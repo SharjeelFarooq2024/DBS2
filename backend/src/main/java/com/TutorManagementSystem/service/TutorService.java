@@ -41,21 +41,31 @@ public class TutorService {
             
             // Get tutor entity
             Tutor tutor = tutorRepository.findById(tutorId)
-                    .orElseThrow(() -> new RuntimeException("Tutor not found"));
+                    .orElseThrow(() -> new RuntimeException("Tutor not found with ID: " + tutorId));
             
             // Get subject entity
             Subject subject = subjectRepository.findById(subjectId)
-                    .orElseThrow(() -> new RuntimeException("Subject not found"));
+                    .orElseThrow(() -> new RuntimeException("Subject not found with ID: " + subjectId));
 
             // Check if tutor teaches this subject
-            boolean teachesSubject = tutor.getTutorSubjects().stream()
+            boolean teachesSubject = tutor.getTutorSubjects() != null && tutor.getTutorSubjects().stream()
                     .anyMatch(ts -> ts.getSubject().getSubjectId().equals(subjectId));
                     
             if (!teachesSubject) {
-                throw new RuntimeException("Tutor does not teach this subject");
+                // Instead of error, add the subject to tutor's subjects
+                TutorSubject tutorSubject = new TutorSubject();
+                tutorSubject.setTutor(tutor);
+                tutorSubject.setSubject(subject);
+                tutorSubject.setExperience("Not specified");
+                
+                if (tutor.getTutorSubjects() == null) {
+                    tutor.setTutorSubjects(new ArrayList<>());
+                }
+                tutor.getTutorSubjects().add(tutorSubject);
+                // No need to save tutorSubject separately as it's cascade persisted
             }
 
-            // Check if slot already exists (use the new repository method)
+            // Check if slot already exists
             boolean slotExists = availabilityRepository.existsByTutorAndSubjectAndDayAndTime(
                     tutorId, subjectId, day, timeSlot);
             
@@ -138,10 +148,10 @@ public class TutorService {
                 .stream()
                 .map(availability -> {
                     AvailabilityDTO dto = new AvailabilityDTO();
-                    dto.setAvailabilityId(availability.getId());  // Changed from setId to setAvailabilityId
+                    dto.setAvailabilityId(availability.getId());
                     dto.setTutorId(availability.getTutor().getId());
                     dto.setSubjectId(availability.getSubject().getSubjectId());
-                    dto.setSubjectName(availability.getSubject().getName());  // Added subjectName
+                    dto.setSubjectName(availability.getSubject().getName());
                     dto.setDayOfWeek(availability.getDayOfWeek());
                     dto.setTimeSlot(availability.getTimeSlot());
                     return dto;

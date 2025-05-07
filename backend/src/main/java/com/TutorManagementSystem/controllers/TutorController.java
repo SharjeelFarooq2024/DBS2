@@ -52,7 +52,7 @@ public class TutorController {
     @PostMapping("/add-availability")
     public ResponseEntity<?> addAvailability(@RequestBody Map<String, Object> body) {
         try {
-            // Debug logging to see what's coming in
+            // Debug logging
             System.out.println("Request body: " + body);
             
             // Extract parameters correctly

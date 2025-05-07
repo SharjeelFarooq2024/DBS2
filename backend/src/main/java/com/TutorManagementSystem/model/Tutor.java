@@ -5,11 +5,8 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "tutor")
+@PrimaryKeyJoinColumn(name = "id") // This makes the inheritance mapping work correctly
 public class Tutor extends User {
-    
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
     
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TutorSubject> tutorSubjects;
@@ -21,9 +18,6 @@ public class Tutor extends User {
     private String qualifications;
 
     // Getters and setters
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    
     public String getSpecialization() { return specialization; }
     public void setSpecialization(String specialization) { this.specialization = specialization; }
     

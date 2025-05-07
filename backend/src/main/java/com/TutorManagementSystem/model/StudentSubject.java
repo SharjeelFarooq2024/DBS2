@@ -1,6 +1,7 @@
 package com.TutorManagementSystem.model;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "student_subject")
@@ -13,6 +14,7 @@ public class StudentSubject {
     @JoinColumn(name = "student_id")
     private Student student;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "subject_id")
     private Subject subject;
