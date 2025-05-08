@@ -7,6 +7,8 @@ import com.TutorManagementSystem.service.StudentRequestService;
 import com.TutorManagementSystem.service.TutorSubjectService;
 import com.TutorManagementSystem.service.TutorService;
 import com.TutorManagementSystem.service.JobService;
+import com.TutorManagementSystem.repository.TutorRepository;
+import com.TutorManagementSystem.model.Tutor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/tutor")
+@RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class TutorController {
 
@@ -35,7 +37,31 @@ public class TutorController {
     @Autowired
     private JobService jobService;
 
-    @GetMapping("/{tutorId}/profile")
+    @Autowired
+    private TutorRepository tutorRepository;
+
+    @GetMapping("/tutor-info/{tutorId}")  // Changed from "/tutor/{tutorId}"
+    public ResponseEntity<?> getTutorById(@PathVariable Long tutorId) {
+        try {
+            Tutor tutor = tutorRepository.findById(tutorId)
+                .orElseThrow(() -> new RuntimeException("Tutor not found"));
+                
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("id", tutor.getId());
+            profile.put("name", tutor.getName());
+            profile.put("email", tutor.getEmail());
+            profile.put("specialization", tutor.getSpecialization());
+            profile.put("qualifications", tutor.getQualifications());
+            
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    @GetMapping("/tutor/{tutorId}/profile")
     public ResponseEntity<?> getTutorProfile(@PathVariable Long tutorId) {
         try {
             Map<String, Object> profile = new HashMap<>();
@@ -49,7 +75,7 @@ public class TutorController {
         }
     }
 
-    @PostMapping("/add-availability")
+    @PostMapping("/tutor/add-availability")
     public ResponseEntity<?> addAvailability(@RequestBody Map<String, Object> body) {
         try {
             // Debug logging
@@ -89,7 +115,7 @@ public class TutorController {
         }
     }
 
-    @PostMapping("/add-subject")
+    @PostMapping("/tutor/add-subject")
     public ResponseEntity<?> addSubject(@RequestBody Map<String, String> body) {
         try {
             Long tutorId = Long.parseLong(body.get("tutorId"));
@@ -111,7 +137,7 @@ public class TutorController {
         }
     }
 
-    @GetMapping("/{tutorId}/requests")
+    @GetMapping("/tutor/{tutorId}/requests")
     public ResponseEntity<?> getStudentRequests(@PathVariable Long tutorId) {
         try {
             List<StudentRequest> requests = studentRequestService.getPendingRequestsForTutor(tutorId);
@@ -139,7 +165,7 @@ public class TutorController {
         }
     }
 
-    @PutMapping("/requests/{requestId}")
+    @PutMapping("/tutor/requests/{requestId}")
     public ResponseEntity<Void> updateRequestStatus(
             @PathVariable Long requestId,
             @RequestBody Map<String, String> body) {
@@ -165,7 +191,7 @@ public class TutorController {
         }
     }
 
-    @GetMapping("/{tutorId}/subjects")
+    @GetMapping("/tutor/{tutorId}/subjects")
     public ResponseEntity<List<Subject>> getSubjectsByTutorId(@PathVariable Long tutorId) {
         return ResponseEntity.ok(tutorSubjectService.getSubjectsByTutorId(tutorId));
     }

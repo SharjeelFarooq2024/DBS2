@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "tutor")
-@PrimaryKeyJoinColumn(name = "id") // This makes the inheritance mapping work correctly
+@PrimaryKeyJoinColumn(name = "id") // Specifies the join column in the tutor table
 public class Tutor extends User {
     
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL, orphanRemoval = true)

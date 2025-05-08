@@ -39,6 +39,41 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
         try {
+            // Add detailed request logging
+            System.out.println("=== USER REGISTRATION REQUEST ===");
+            System.out.println("Email: " + (registerRequest.getEmail() != null ? registerRequest.getEmail() : "NULL"));
+            System.out.println("Name: " + (registerRequest.getName() != null ? registerRequest.getName() : "NULL"));
+            System.out.println("Role: " + (registerRequest.getRole() != null ? registerRequest.getRole() : "NULL"));
+            System.out.println("Grade: " + (registerRequest.getGrade() != null ? registerRequest.getGrade() : "NULL"));
+            System.out.println("Specialization: " + (registerRequest.getSpecialization() != null ? registerRequest.getSpecialization() : "NULL"));
+            System.out.println("Qualifications: " + (registerRequest.getQualifications() != null ? registerRequest.getQualifications() : "NULL"));
+            System.out.println("================================");
+
+            // Check if required fields are present
+            if (registerRequest.getEmail() == null || registerRequest.getEmail().trim().isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Email is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (registerRequest.getName() == null || registerRequest.getName().trim().isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Name is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (registerRequest.getPassword() == null || registerRequest.getPassword().trim().isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Password is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (registerRequest.getRole() == null || registerRequest.getRole().trim().isEmpty()) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Role is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             // Check if user already exists
             if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
                 Map<String, String> response = new HashMap<>();
@@ -46,32 +81,43 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            // Create user
-            User user = new User();
-            user.setName(registerRequest.getName());
-            user.setEmail(registerRequest.getEmail());
-            user.setPassword(registerRequest.getPassword());
-            user.setRole(registerRequest.getRole());
-            user.setCreatedAt(LocalDateTime.now());
+            User savedUser = null;
             
-            // Save the user first to get the ID
-            User savedUser = userRepository.save(user);
-            
-            // If the role is TUTOR, create a tutor record
             if ("TUTOR".equals(registerRequest.getRole())) {
-                // Create tutor with same ID
                 Tutor tutor = new Tutor();
-                tutor.setId(savedUser.getId());
-                // No need to set user field since we're using inheritance
-                tutorRepository.save(tutor);
-            }
-            
-            // If the role is STUDENT, create a student record
-            if ("STUDENT".equals(registerRequest.getRole())) {
+                tutor.setName(registerRequest.getName());
+                tutor.setEmail(registerRequest.getEmail());
+                tutor.setPassword(registerRequest.getPassword()); // Consider encoding this
+                tutor.setRole(registerRequest.getRole());
+                // tutor.setCreatedAt(LocalDateTime.now()); // @PrePersist in User entity handles this
+                tutor.setSpecialization(registerRequest.getSpecialization());
+                tutor.setQualifications(registerRequest.getQualifications());
+                savedUser = tutorRepository.save(tutor);
+            } else if ("STUDENT".equals(registerRequest.getRole())) {
                 Student student = new Student();
-                student.setId(savedUser.getId());
-                studentRepository.save(student);
+                student.setName(registerRequest.getName());
+                student.setEmail(registerRequest.getEmail());
+                student.setPassword(registerRequest.getPassword()); // Consider encoding this
+                student.setRole(registerRequest.getRole());
+                // student.setCreatedAt(LocalDateTime.now()); // @PrePersist in User entity handles this
+                student.setGrade(registerRequest.getGrade());
+                savedUser = studentRepository.save(student);
+            } else {
+                // Handle cases where role is neither TUTOR nor STUDENT, or throw an error
+                User user = new User();
+                user.setName(registerRequest.getName());
+                user.setEmail(registerRequest.getEmail());
+                user.setPassword(registerRequest.getPassword()); // Consider encoding this
+                user.setRole(registerRequest.getRole());
+                // user.setCreatedAt(LocalDateTime.now()); // @PrePersist in User entity handles this
+                savedUser = userRepository.save(user);
             }
+
+            System.out.println("=== REGISTRATION SUCCESS ===");
+            System.out.println("User ID: " + savedUser.getId());
+            System.out.println("Email: " + savedUser.getEmail());
+            System.out.println("Role: " + savedUser.getRole());
+            System.out.println("===========================");
 
             // Create response
             LoginResponse response = new LoginResponse();
@@ -79,12 +125,18 @@ public class AuthController {
             response.setEmail(savedUser.getEmail());
             response.setName(savedUser.getName());
             response.setRole(savedUser.getRole());
+            response.setMessage("Registration successful");
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            Map<String, String> response = new HashMap<>();
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            System.err.println("=== REGISTRATION ERROR ===");
+            System.err.println("Error message: " + e.getMessage());
+            e.printStackTrace();
+            System.err.println("=========================");
+            
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Registration failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 

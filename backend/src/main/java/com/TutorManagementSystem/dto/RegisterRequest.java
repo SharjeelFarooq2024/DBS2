@@ -18,6 +18,10 @@ public class RegisterRequest {
 
     @NotBlank(message = "Role is required")
     private String role;
+    
+    private String grade;            // For students
+    private String specialization;   // For tutors
+    private String qualifications;   // For tutors
 
     // Getters
     public String getName() {
@@ -35,6 +39,18 @@ public class RegisterRequest {
     public String getRole() {
         return role;
     }
+    
+    public String getGrade() {
+        return grade;
+    }
+    
+    public String getSpecialization() {
+        return specialization;
+    }
+    
+    public String getQualifications() {
+        return qualifications;
+    }
 
     // Setters
     public void setName(String name) {
@@ -51,5 +67,17 @@ public class RegisterRequest {
 
     public void setRole(String role) {
         this.role = role;
+    }
+    
+    public void setGrade(String grade) {
+        this.grade = grade;
+    }
+    
+    public void setSpecialization(String specialization) {
+        this.specialization = specialization;
+    }
+    
+    public void setQualifications(String qualifications) {
+        this.qualifications = qualifications;
     }
 }

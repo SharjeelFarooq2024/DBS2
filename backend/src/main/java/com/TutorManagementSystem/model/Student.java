@@ -5,7 +5,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "student")
-@PrimaryKeyJoinColumn(name = "id")
+@PrimaryKeyJoinColumn(name = "id") // Specifies the join column in the student table
 public class Student extends User {
     @Column(name = "grade")
     private String grade;
