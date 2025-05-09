@@ -381,15 +381,21 @@
           throw new Error('Failed to load student requests');
         }
         
-        const requests = await response.json();
+        let requests = await response.json();
         const requestsContainer = document.getElementById('requestsContainer');
         requestsContainer.innerHTML = '';
-        
         if (requests.length === 0) {
           requestsContainer.innerHTML = '<p class="no-requests">No requests found.</p>';
           return;
         }
-
+        // Sort: pending first, then rejected, then accepted; newest first
+        requests.sort((a, b) => {
+          const statusOrder = { 'PENDING': 0, 'REJECTED': 1, 'ACCEPTED': 2 };
+          if (statusOrder[a.status] !== statusOrder[b.status]) {
+            return statusOrder[a.status] - statusOrder[b.status];
+          }
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
         requests.forEach(request => {
           const requestElement = document.createElement('div');
           requestElement.className = 'request-item';
@@ -414,10 +420,12 @@
       try {
         const response = await fetch('/api/jobs');
         if (!response.ok) throw new Error('Failed to load jobs');
-        const jobs = await response.json();
+        let jobs = await response.json();
         const jobsContainer = document.getElementById('jobsContainer');
         jobsContainer.innerHTML = '';
         const myJobs = jobs.filter(job => job.tutorId === tutorId);
+        // Newest jobs first
+        myJobs.sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
         if (myJobs.length === 0) {
           jobsContainer.innerHTML = '<p>No jobs assigned yet.</p>';
           return;
