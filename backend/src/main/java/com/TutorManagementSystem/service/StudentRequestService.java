@@ -105,4 +105,20 @@ public class StudentRequestService {
                 .map(Subject::getName)
                 .orElse("Unknown Subject");
     }
+
+    // Get all requests for a tutor's subjects (for dashboard)
+    public List<StudentRequest> getAllRequestsForTutor(Long tutorId) {
+        List<StudentRequest> all = studentRequestRepository.findAll();
+        List<StudentRequest> result = new ArrayList<>();
+        for (StudentRequest req : all) {
+            if (req.getSubject() != null && req.getSubject().getTutorSubjects() != null) {
+                req.getSubject().getTutorSubjects().forEach(ts -> {
+                    if (ts.getTutor() != null && ts.getTutor().getId().equals(tutorId)) {
+                        result.add(req);
+                    }
+                });
+            }
+        }
+        return result;
+    }
 }

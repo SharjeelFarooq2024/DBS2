@@ -140,8 +140,8 @@ public class TutorController {
     @GetMapping("/tutor/{tutorId}/requests")
     public ResponseEntity<?> getStudentRequests(@PathVariable Long tutorId) {
         try {
-            List<StudentRequest> requests = studentRequestService.getPendingRequestsForTutor(tutorId);
-            
+            // Return all requests for this tutor's subjects, not just pending
+            List<StudentRequest> requests = studentRequestService.getAllRequestsForTutor(tutorId);
             List<Map<String, Object>> formattedRequests = new ArrayList<>();
             if (requests != null) {
                 formattedRequests = requests.stream().map(request -> {
@@ -155,7 +155,6 @@ public class TutorController {
                     return formatted;
                 }).collect(Collectors.toList());
             }
-            
             return ResponseEntity.ok(formattedRequests);
         } catch (Exception e) {
             e.printStackTrace();

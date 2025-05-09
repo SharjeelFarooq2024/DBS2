@@ -28,11 +28,15 @@
       color: #00bfa5;
     }
     .container {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
+      display: flex;
+      flex-direction: row;
       gap: 40px;
       max-width: 1200px;
       margin: 0 auto;
+    }
+    .left-col, .center-col, .right-col {
+      flex: 1;
+      min-width: 0;
     }
     .card {
       background: #fff;
@@ -138,7 +142,7 @@
   </header>
 
   <div class="container">
-    <div>
+    <div class="left-col">
       <div class="card">
         <h2>Manage Availability</h2>
         <div id="combinedError" class="error-message"></div>
@@ -173,7 +177,16 @@
           <!-- Time slots will appear here -->
         </div>
       </div>
-
+    </div>
+    <div class="center-col">
+      <div class="card">
+        <h2>Jobs</h2>
+        <div id="jobsContainer" class="jobs-list">
+          <!-- Jobs will appear here -->
+        </div>
+      </div>
+    </div>
+    <div class="right-col">
       <div class="card">
         <h2>Student Requests</h2>
         <div id="requestsContainer" class="requests">
@@ -204,6 +217,7 @@
       loadSubjects();
       loadTutorProfile();
       loadStudentRequests();
+      loadJobs(); // Load jobs on dashboard load
     };
 
     // Initialize time slots
@@ -372,7 +386,7 @@
         requestsContainer.innerHTML = '';
         
         if (requests.length === 0) {
-          requestsContainer.innerHTML = '<p class="no-requests">No pending requests.</p>';
+          requestsContainer.innerHTML = '<p class="no-requests">No requests found.</p>';
           return;
         }
 
@@ -381,17 +395,48 @@
           requestElement.className = 'request-item';
           requestElement.innerHTML = `
             <h3>Student: ${request.studentName || 'Unknown'}</h3>
-            <p>Subject: ${request.subject || 'Not specified'}</p>
+            <p>Subject: ${request.subjectName || 'Not specified'}</p>
             <p>Description: ${request.description || 'No description provided'}</p>
-            <div class="actions">
+            <p><strong>Status:</strong> ${request.status}</p>
+            ${request.status === 'PENDING' ? `<div class="actions">
               <button onclick="updateRequestStatus(${request.requestId}, 'ACCEPTED')">Accept</button>
               <button onclick="updateRequestStatus(${request.requestId}, 'REJECTED')" style="background: #f44336;">Reject</button>
-            </div>
+            </div>` : ''}
           `;
           requestsContainer.appendChild(requestElement);
         });
       } catch (error) {
         console.error('Error loading student requests:', error);
+      }
+    }
+
+    async function loadJobs() {
+      try {
+        const response = await fetch('/api/jobs');
+        if (!response.ok) throw new Error('Failed to load jobs');
+        const jobs = await response.json();
+        const jobsContainer = document.getElementById('jobsContainer');
+        jobsContainer.innerHTML = '';
+        const myJobs = jobs.filter(job => job.tutorId === tutorId);
+        if (myJobs.length === 0) {
+          jobsContainer.innerHTML = '<p>No jobs assigned yet.</p>';
+          return;
+        }
+        myJobs.forEach(job => {
+          const jobDiv = document.createElement('div');
+          jobDiv.className = 'request-item';
+          jobDiv.innerHTML = `
+            <h3>Job #${job.jobId}</h3>
+            <p><strong>Student:</strong> ${job.studentId}</p>
+            <p><strong>Request ID:</strong> ${job.request ? job.request.requestId : ''}</p>
+            <p><strong>Status:</strong> ${job.status}</p>
+            <p><strong>Start:</strong> ${job.startTime ? new Date(job.startTime).toLocaleString() : 'N/A'}</p>
+            <p><strong>End:</strong> ${job.endTime ? new Date(job.endTime).toLocaleString() : 'N/A'}</p>
+          `;
+          jobsContainer.appendChild(jobDiv);
+        });
+      } catch (error) {
+        document.getElementById('jobsContainer').innerHTML = '<p>Error loading jobs.</p>';
       }
     }
 
@@ -402,7 +447,7 @@
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ status })
+          body: JSON.stringify({ status, tutorId })
         });
         
         if (!response.ok) {
@@ -410,6 +455,7 @@
         }
         
         loadStudentRequests();
+        loadJobs(); // Refresh jobs after accepting a request
       } catch (error) {
         console.error('Error updating request status:', error);
       }
