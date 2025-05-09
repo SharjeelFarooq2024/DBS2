@@ -404,7 +404,7 @@
             <p>Subject: ${request.subjectName || 'Not specified'}</p>
             <p>Description: ${request.description || 'No description provided'}</p>
             <p><strong>Status:</strong> ${request.status}</p>
-            ${request.status === 'PENDING' ? `<div class="actions">
+            ${request.status && request.status.toUpperCase() === 'PENDING' ? `<div class="actions">
               <button onclick="updateRequestStatus(${request.requestId}, 'ACCEPTED')">Accept</button>
               <button onclick="updateRequestStatus(${request.requestId}, 'REJECTED')" style="background: #f44336;">Reject</button>
             </div>` : ''}
