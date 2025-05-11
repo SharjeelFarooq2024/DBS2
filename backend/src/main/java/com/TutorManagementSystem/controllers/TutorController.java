@@ -8,10 +8,12 @@ import com.TutorManagementSystem.service.TutorSubjectService;
 import com.TutorManagementSystem.service.TutorService;
 import com.TutorManagementSystem.service.JobService;
 import com.TutorManagementSystem.repository.TutorRepository;
+import com.TutorManagementSystem.repository.AvailabilityRepository;
 import com.TutorManagementSystem.model.Tutor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -39,6 +41,9 @@ public class TutorController {
 
     @Autowired
     private TutorRepository tutorRepository;
+
+    @Autowired
+    private AvailabilityRepository availabilityRepository;
 
     @GetMapping("/tutor-info/{tutorId}")  // Changed from "/tutor/{tutorId}"
     public ResponseEntity<?> getTutorById(@PathVariable Long tutorId) {
@@ -193,5 +198,18 @@ public class TutorController {
     @GetMapping("/tutor/{tutorId}/subjects")
     public ResponseEntity<List<Subject>> getSubjectsByTutorId(@PathVariable Long tutorId) {
         return ResponseEntity.ok(tutorSubjectService.getSubjectsByTutorId(tutorId));
+    }
+
+    @DeleteMapping("/tutor/availability/{availabilityId}")
+    public ResponseEntity<?> deleteAvailability(@PathVariable Long availabilityId) {
+        try {
+            if (!availabilityRepository.existsById(availabilityId)) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Not Found"));
+            }
+            availabilityRepository.deleteById(availabilityId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
     }
 }

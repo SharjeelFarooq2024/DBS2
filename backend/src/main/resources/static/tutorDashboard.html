@@ -357,7 +357,7 @@
                   <strong>${subject.subjectName}</strong>
                   <div class="time-slots">
                     ${slots.map(slot => 
-                      `<div class="time-slot">${slot.dayOfWeek} at ${slot.timeSlot}</div>`
+                      `<div class="time-slot">${slot.dayOfWeek} at ${slot.timeSlot} <button style="margin-left:8px; background:#ff5252; color:#fff; border:none; border-radius:3px; padding:2px 8px; font-size:12px; cursor:pointer;" onclick="removeAvailabilitySlot(${slot.availabilityId})">Remove</button></div>`
                     ).join('')}
                   </div>
                 </div>
@@ -476,6 +476,34 @@
       setTimeout(() => {
         element.style.display = 'none';
       }, 5000);
+    }
+
+    // Add this function to handle slot removal
+    async function removeAvailabilitySlot(availabilityId) {
+      if (!confirm('Are you sure you want to remove this time slot?')) return;
+      try {
+        const response = await fetch(`/api/tutor/availability/${availabilityId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          let errorMsg = 'Failed to remove time slot';
+          try {
+            const errorData = await response.json();
+            if (errorData && errorData.error) errorMsg = errorData.error;
+          } catch (e) {
+            // Not JSON, ignore
+          }
+          console.error('Remove slot error:', response.status, response.statusText);
+          showError(document.getElementById('combinedError'), errorMsg + ` (Status: ${response.status})`);
+          return;
+        }
+        loadTutorProfile();
+      } catch (error) {
+        showError(document.getElementById('combinedError'), error.message);
+      }
     }
   </script>
 </body>
