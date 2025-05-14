@@ -208,12 +208,41 @@
       color: #999;
       margin-top: 8px;
     }
+
+    /* Debug panel styles */
+    #debugPanel {
+      background: #f8f9fa;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      display: none;
+    }
+    #debugPanel h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #333;
+    }
+    #debugInfo {
+      white-space: pre-wrap;
+      font-family: monospace;
+      background: #eef;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <header>
     <div class="logo">MyTutor - Tutor Dashboard</div>
   </header>
+
+  <!-- Debug panel for development -->
+  <div id="debugPanel">
+    <h3>Debug Information</h3>
+    <pre id="debugInfo"></pre>
+    <button onclick="toggleDebugMode()" style="width: auto;">Toggle Debug Mode</button>
+  </div>
 
   <div class="container">
     <div class="left-col">
@@ -285,25 +314,35 @@
     let tutorId;
 
     // SINGLE window.onload function - remove any duplicates
-    window.onload = function() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user || user.role !== 'TUTOR') {
-        window.location.href = '/login.html';
-        return;
-      }
-      
-      tutorId = user.id; // Set tutorId
-      console.log("Logged in tutor ID:", tutorId);
-      
-      // Initialize time slots
-      initializeTimeSlots();
-      
-      // Load subjects and profile data
-      loadSubjects();
-      loadTutorProfile();
-      loadStudentRequests();
-      loadJobs(); // Load jobs on dashboard load
-      loadFeedback(); // Add this line
+    window.onload = async function() {
+      try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        console.log('User data from localStorage:', user);
+        
+        if (!user || user.role !== 'TUTOR') {
+            console.error('Invalid user or role:', user);
+            window.location.href = '/login.html';
+            return;
+        }
+        
+        tutorId = user.id;
+        console.log('Initializing dashboard for tutor ID:', tutorId);
+        
+        // Initialize all dashboard components
+        await Promise.all([
+            initializeTimeSlots(),
+            loadSubjects(),
+            loadTutorProfile(),
+            loadStudentRequests(),
+            loadJobs(),
+            loadFeedback()
+        ]).catch(error => {
+            console.error('Error initializing dashboard:', error);
+        });
+        
+    } catch (error) {
+        console.error('Dashboard initialization failed:', error);
+    }
     };
 
     // Initialize time slots
@@ -462,18 +501,25 @@
 
     async function loadStudentRequests() {
       try {
+        console.log(`Fetching requests for tutor ${tutorId}...`);
         const response = await fetch(`/api/tutor/${tutorId}/requests`);
+        console.log('Request response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error('Failed to load student requests');
+            const errorText = await response.text();
+            console.error('Request loading failed:', errorText);
+            throw new Error(`Failed to load requests: ${response.status}`);
         }
         
-        let requests = await response.json();
+        const requests = await response.json();
+        console.log('Loaded requests:', requests);
+        
         const requestsContainer = document.getElementById('requestsContainer');
-        requestsContainer.innerHTML = '';
-        if (requests.length === 0) {
-          requestsContainer.innerHTML = '<p class="no-requests">No requests found.</p>';
-          return;
+        if (!requests || requests.length === 0) {
+            requestsContainer.innerHTML = '<p class="no-requests">No requests found.</p>';
+            return;
         }
+
         // Sort: pending first, then rejected, then accepted; newest first
         requests.sort((a, b) => {
           const statusOrder = { 'PENDING': 0, 'REJECTED': 1, 'ACCEPTED': 2 };
@@ -498,18 +544,31 @@
           requestsContainer.appendChild(requestElement);
         });
       } catch (error) {
-        console.error('Error loading student requests:', error);
+        console.error('Error in loadStudentRequests:', error);
+        document.getElementById('requestsContainer').innerHTML = 
+            `<p class="error">Error loading requests: ${error.message}</p>`;
       }
     }
 
     async function loadJobs() {
       try {
-        const response = await fetch('/api/jobs');
-        if (!response.ok) throw new Error('Failed to load jobs');
-        let jobs = await response.json();
+        console.log(`Fetching jobs for tutor ${tutorId}...`);
+        const response = await fetch(`/api/jobs?tutorId=${tutorId}`);
+        console.log('Jobs response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Jobs loading failed:', errorText);
+            throw new Error(`Failed to load jobs: ${response.status}`);
+        }
+        
+        const jobs = await response.json();
+        console.log('Loaded jobs:', jobs);
+        
         const jobsContainer = document.getElementById('jobsContainer');
-        jobsContainer.innerHTML = '';
         const myJobs = jobs.filter(job => job.tutorId === tutorId);
+        console.log('Filtered jobs for current tutor:', myJobs);
+
         // Newest jobs first
         myJobs.sort((a, b) => new Date(b.assignedAt) - new Date(a.assignedAt));
         if (myJobs.length === 0) {
@@ -530,7 +589,9 @@
           jobsContainer.appendChild(jobDiv);
         });
       } catch (error) {
-        document.getElementById('jobsContainer').innerHTML = '<p>Error loading jobs.</p>';
+        console.error('Error in loadJobs:', error);
+        document.getElementById('jobsContainer').innerHTML = 
+            `<p class="error">Error loading jobs: ${error.message}</p>`;
       }
     }
 
@@ -595,37 +656,89 @@
     // Add this function to load feedback
     async function loadFeedback() {
       try {
+        console.log(`Fetching feedback for tutor ${tutorId}...`);
         const response = await fetch(`/api/feedback/tutor/${tutorId}`);
-        if (!response.ok) throw new Error('Failed to load feedback');
+        console.log('Feedback response status:', response.status);
         
-        const data = await response.json();
-        const { feedbacks, summary } = data;
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
         
-        // Update summary
-        const summaryHtml = `
-          <h3>Rating: ${summary.averageRating} / 5</h3>
-          <p>Based on ${summary.totalFeedbacks} reviews</p>
-        `;
-        document.getElementById('feedbackSummary').innerHTML = summaryHtml;
+        let text;
+        try {
+            text = await response.text(); // Get response as text first
+            console.log('Raw feedback response:', text);
+            
+            const data = JSON.parse(text); // Try to parse as JSON
+            console.log('Parsed feedback data:', data);
+            
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format');
+            }
+
+            // Ensure we have the expected structure
+            const feedbacks = Array.isArray(data.feedbacks) ? data.feedbacks : [];
+            const summary = data.summary || { averageRating: 0, totalFeedbacks: 0 };
+            
+            // Update summary
+            const summaryHtml = `
+                <h3>Rating: ${summary.averageRating.toFixed(1)} / 5</h3>
+                <p>Based on ${summary.totalFeedbacks} reviews</p>
+            `;
+            document.getElementById('feedbackSummary').innerHTML = summaryHtml;
+            
+            // Update feedback list
+            const feedbackList = document.getElementById('feedbackList');
+            if (feedbacks.length === 0) {
+                feedbackList.innerHTML = '<p>No feedback received yet.</p>';
+                return;
+            }
+
+            feedbackList.innerHTML = feedbacks.map(feedback => `
+                <div class="feedback-item">
+                    <div class="feedback-rating">
+                        ${'★'.repeat(feedback.rating)}${'☆'.repeat(5-feedback.rating)}
+                    </div>
+                    <div class="feedback-comment">${feedback.comment || 'No comment provided'}</div>
+                    <div class="feedback-meta">
+                        From: ${feedback.student?.name || 'Anonymous'} | 
+                        ${new Date(feedback.createdAt).toLocaleDateString()}
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError);
+            console.error('Response text:', text);
+            throw new Error('Invalid JSON response from server');
+        }
         
-        // Update feedback list
-        const feedbackList = document.getElementById('feedbackList');
-        feedbackList.innerHTML = feedbacks.map(feedback => `
-          <div class="feedback-item">
-            <div class="feedback-rating">
-              ${'★'.repeat(feedback.rating)}${'☆'.repeat(5-feedback.rating)}
-            </div>
-            <div class="feedback-comment">${feedback.comment}</div>
-            <div class="feedback-meta">
-              From: ${feedback.student.name} | ${new Date(feedback.createdAt).toLocaleDateString()}
-            </div>
-          </div>
-        `).join('');
-        
-      } catch (error) {
-        console.error('Error loading feedback:', error);
-      }
+    } catch (error) {
+        console.error('Error in loadFeedback:', error);
+        document.getElementById('feedbackSummary').innerHTML = '';
+        document.getElementById('feedbackList').innerHTML = 
+            `<p class="error">Error loading feedback: ${error.message}</p>`;
     }
+    }
+
+    // Debug functions
+    function toggleDebugMode() {
+      const debugPanel = document.getElementById('debugPanel');
+      debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function updateDebugInfo(info) {
+      const debugInfo = document.getElementById('debugInfo');
+      debugInfo.textContent = JSON.stringify(info, null, 2);
+    }
+
+    // Press Ctrl+D to toggle debug mode
+    document.addEventListener('keydown', function(e) {
+      if (e.ctrlKey && e.key === 'd') {
+        e.preventDefault();
+        toggleDebugMode();
+      }
+    });
   </script>
 </body>
 </html>

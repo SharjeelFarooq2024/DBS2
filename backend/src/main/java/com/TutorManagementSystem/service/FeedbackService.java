@@ -1,5 +1,6 @@
 package com.TutorManagementSystem.service;
 
+import com.TutorManagementSystem.dto.FeedbackDTO;
 import com.TutorManagementSystem.model.Feedback;
 import com.TutorManagementSystem.model.Student;
 import com.TutorManagementSystem.model.Tutor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class FeedbackService {
@@ -67,5 +69,25 @@ public class FeedbackService {
         summary.put("averageRating", Math.round(averageRating * 10.0) / 10.0);
         summary.put("totalFeedbacks", feedbacks.size());
         return summary;
+    }
+
+    public List<Long> getTutorsWithFeedbackFromStudent(Long studentId) {
+        return feedbackRepository.findTutorIdsByStudentId(studentId);
+    }
+
+    public List<FeedbackDTO> getTutorFeedbackDTOs(Long tutorId) {
+        List<Feedback> feedbacks = feedbackRepository.findByTutorId(tutorId);
+        return feedbacks.stream().map(fb -> {
+            FeedbackDTO dto = new FeedbackDTO();
+            dto.setId(fb.getId());
+            dto.setComment(fb.getComment());
+            dto.setCreatedAt(fb.getCreatedAt());
+            dto.setRating(fb.getRating());
+            dto.setStudentId(fb.getStudent().getId());
+            // Fetch student name
+            Student student = fb.getStudent();
+            dto.setStudentName(student != null ? student.getName() : "Anonymous");
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

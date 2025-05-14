@@ -178,17 +178,12 @@ public class TutorController {
             String status = body.get("status");
             Long tutorId = Long.parseLong(body.get("tutorId"));
             
-            StudentRequest request = studentRequestService.updateRequestStatus(requestId, status);
-            
             if ("ACCEPTED".equals(status)) {
-                Job job = new Job();
-                job.setRequest(request);
-                job.setTutorId(tutorId);
-                job.setStudentId(request.getStudent().getId());
-                job.setStatus("ASSIGNED");
-                jobService.assignJob(job);
+                studentRequestService.acceptRequest(requestId, tutorId);
+                // ... assign job, etc ...
+            } else {
+                studentRequestService.updateRequestStatus(requestId, status);
             }
-            
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             e.printStackTrace();

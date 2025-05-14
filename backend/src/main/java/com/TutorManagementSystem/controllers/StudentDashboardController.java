@@ -6,6 +6,7 @@ import com.TutorManagementSystem.model.Subject;
 import com.TutorManagementSystem.model.Tutor;
 import com.TutorManagementSystem.service.StudentRequestService;
 import com.TutorManagementSystem.service.JobService;
+import com.TutorManagementSystem.service.FeedbackService;
 import com.TutorManagementSystem.repository.SubjectRepository;
 import com.TutorManagementSystem.repository.TutorRepository;
 
@@ -32,6 +33,9 @@ public class StudentDashboardController {
 
     @Autowired
     private TutorRepository tutorRepository;
+
+    @Autowired
+    private FeedbackService feedbackService; // Add this line
 
     @GetMapping("/current-subjects/{studentId}")
     public ResponseEntity<List<Subject>> getCurrentSubjects(@PathVariable Long studentId) {
@@ -164,20 +168,19 @@ public class StudentDashboardController {
 
     @GetMapping("/{studentId}/accepted-tutors")
     public ResponseEntity<?> getAcceptedTutors(@PathVariable Long studentId) {
-        try {
-            // Get all accepted requests for this student
-            List<StudentRequest> acceptedRequests = studentRequestService
-                .getRequestsByStudentIdAndStatus(studentId, "ACCEPTED");
-            
-            if (acceptedRequests.isEmpty()) {
-                return ResponseEntity.ok(Collections.emptyList());
-            }
+        List<StudentRequest> acceptedRequests = studentRequestService
+            .getRequestsByStudentIdAndStatus(studentId, "ACCEPTED")
+            .stream()
+            .filter(r -> r.getTutorId() != null)
+            .collect(Collectors.toList());
 
-            // Convert to tutor response objects
-            List<Map<String, Object>> tutorResponses = new ArrayList<>();
-            
-            for (StudentRequest request : acceptedRequests) {
-                Tutor tutor = tutorRepository.findById(request.getTutorId()).orElse(null);
+        List<Long> tutorsWithFeedback = feedbackService.getTutorsWithFeedbackFromStudent(studentId);
+
+        List<Map<String, Object>> tutorResponses = new ArrayList<>();
+        for (StudentRequest request : acceptedRequests) {
+            Long tutorId = request.getTutorId();
+            if (!tutorsWithFeedback.contains(tutorId)) {
+                Tutor tutor = tutorRepository.findById(tutorId).orElse(null);
                 if (tutor != null) {
                     Map<String, Object> tutorResponse = new HashMap<>();
                     tutorResponse.put("id", tutor.getId());
@@ -186,12 +189,11 @@ public class StudentDashboardController {
                     tutorResponses.add(tutorResponse);
                 }
             }
-            
-            return ResponseEntity.ok(tutorResponses);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest()
-                .body(Map.of("error", "Error getting tutors: " + e.getMessage()));
         }
+        System.out.println("Accepted requests: " + acceptedRequests);
+        System.out.println("Tutors with feedback: " + tutorsWithFeedback);
+        System.out.println("Returning tutors: " + tutorResponses);
+        return ResponseEntity.ok(tutorResponses);
     }
 }
 

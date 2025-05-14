@@ -264,40 +264,44 @@
       color: #333;
     }
 
+    .info-message {
+      background-color: #e3f2fd;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      color: #1976d2;
+      font-size: 0.9em;
+    }
+
+    .feedback-form select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-top: 5px;
+      font-size: 1em;
+    }
+
+    .feedback-form textarea {
+      width: 100%;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      font-size: 1em;
+    }
+
     .star-rating {
       display: flex;
       flex-direction: row-reverse;
-      justify-content: flex-start;
-      gap: 5px;
-    }
-
-    .star-rating input {
-      display: none;
+      justify-content: flex-end;
     }
 
     .star-rating label {
+      font-size: 30px;
+      padding: 0 2px;
       cursor: pointer;
-      font-size: 25px;
-      color: #ddd;
-      transition: color 0.2s ease;
-    }
-
-    .star-rating input:checked ~ label {
-      color: #ffd700;
-    }
-
-    .star-rating label:hover,
-    .star-rating label:hover ~ label {
-      color: #ffd700;
-    }
-
-    textarea#feedbackComment {
-      width: 100%;
-      min-height: 100px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      resize: vertical;
     }
 
     @media (max-width: 600px) {
@@ -344,16 +348,22 @@
         <!-- Tutors will be loaded here -->
       </div>
 
-      <div id="requestDetails" class="request-details" style="display: none;">
-        <h3>Request Details</h3>
-        <textarea id="requestDescription" placeholder="Describe what you need help with..."></textarea>
-        <button onclick="createTutoringRequest()" class="submit-button">Submit Request</button>
+      <div id="requestDetails" class="form-group" style="display: none; margin-top: 15px;">
+        <label for="requestDescription" style="font-weight: 600; color: #333; margin-bottom: 8px; display: block;">
+          Describe your request:
+        </label>
+        <textarea id="requestDescription" placeholder="Write what you need help with..." required
+          style="width:100%; min-height: 100px; padding:12px; border:1px solid #ddd; border-radius:4px; font-size:1em; margin-bottom:10px;"></textarea>
+        <button onclick="createTutoringRequest()" class="submit-button" style="margin-top: 0;">Submit Request</button>
       </div>
     </section>
 
     <!-- Add this inside the main section -->
     <section class="feedback-section">
       <h2>Give Feedback</h2>
+      <div class="info-message">
+        You can only provide feedback for tutors who have accepted your requests.
+      </div>
       <form id="feedbackForm" class="feedback-form">
         <div class="form-group">
           <label for="tutorSelect">Select Tutor:</label>
@@ -375,7 +385,8 @@
 
         <div class="form-group">
           <label for="feedbackComment">Your Feedback:</label>
-          <textarea id="feedbackComment" required placeholder="Write your feedback here..."></textarea>
+          <textarea id="feedbackComment" required 
+                    placeholder="Write your feedback about the tutor's teaching style, knowledge, and helpfulness..."></textarea>
         </div>
 
         <button type="submit" class="submit-button">Submit Feedback</button>
@@ -479,18 +490,104 @@ async function loadSubjects() {
     }
 }
 
-// Call this when page loads
-window.onload = function() {
+// Update the loadTutorsForFeedback function
+async function loadTutorsForFeedback() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.id) {
+            console.error('User not logged in');
+            return;
+        }
+
+        console.log('Fetching accepted tutors for student:', user.id);
+        const response = await fetch(`/api/student/${user.id}/accepted-tutors`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const tutors = await response.json();
+        console.log('Received tutors:', tutors);
+        
+        const tutorSelect = document.getElementById('tutorSelect');
+        tutorSelect.innerHTML = '<option value="">Select a tutor...</option>';
+
+        if (tutors && tutors.length > 0) {
+            tutors.forEach(tutor => {
+                const option = document.createElement('option');
+                option.value = tutor.id;
+                option.textContent = `${tutor.name}`;
+                tutorSelect.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.disabled = true;
+            option.textContent = 'No tutors available for feedback';
+            tutorSelect.appendChild(option);
+        }
+
+    } catch (error) {
+        console.error('Error loading tutors for feedback:', error);
+        const tutorSelect = document.getElementById('tutorSelect');
+        tutorSelect.innerHTML = '<option value="" disabled>Error loading tutors</option>';
+    }
+}
+
+// Add this debug function
+function debugFeedbackState() {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || user.role !== 'STUDENT') {
-        window.location.href = '/login.html';
+    console.log('Current user:', user);
+    console.log('Feedback form state:', {
+        tutorSelect: document.getElementById('tutorSelect').value,
+        rating: document.querySelector('input[name="rating"]:checked')?.value,
+        comment: document.getElementById('feedbackComment').value
+    });
+}
+
+// Update the form submission handler
+document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    debugFeedbackState();
+    
+    const user = JSON.parse(localStorage.getItem('user'));
+    const tutorId = document.getElementById('tutorSelect').value;
+    const rating = document.querySelector('input[name="rating"]:checked')?.value;
+    const comment = document.getElementById('feedbackComment').value;
+    
+    if (!tutorId || !rating || !comment) {
+        alert('Please fill in all fields');
         return;
     }
-    loadSubjects();
-    loadRequests();
-    loadTutorsForFeedback();
-    debugRequests(); // Add this line
-}
+    
+    try {
+        console.log('Submitting feedback:', { tutorId, rating, comment });
+        const response = await fetch('/api/feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                studentId: user.id,
+                tutorId: tutorId,
+                rating: parseInt(rating),
+                comment: comment
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to submit feedback');
+        }
+        
+        alert('Feedback submitted successfully!');
+        e.target.reset();
+        loadTutorsForFeedback(); // Reload the tutors list
+        
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        alert('Failed to submit feedback: ' + error.message);
+    }
+});
 
 // Update the loadRequests function, remove the feedback section
 async function loadRequests() {
@@ -583,86 +680,7 @@ function selectTutor(tutorId) {
     document.getElementById('requestDescription').focus();
 }
 
-// Add this to your existing script section
-async function loadTutorsForFeedback() {
-    try {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (!user || !user.id) {
-            console.error('User not logged in');
-            return;
-        }
-
-        const response = await fetch(`/api/student/${user.id}/accepted-tutors`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const tutors = await response.json();
-        console.log('Loaded tutors:', tutors); // Debug log
-
-        const tutorSelect = document.getElementById('tutorSelect');
-        tutorSelect.innerHTML = '<option value="">Select a tutor...</option>';
-
-        if (tutors && tutors.length > 0) {
-            tutors.forEach(tutor => {
-                const option = document.createElement('option');
-                option.value = tutor.id;
-                option.textContent = tutor.name;
-                tutorSelect.appendChild(option);
-            });
-        } else {
-            const option = document.createElement('option');
-            option.disabled = true;
-            option.textContent = 'No tutors available for feedback';
-            tutorSelect.appendChild(option);
-        }
-    } catch (error) {
-        console.error('Error loading tutors for feedback:', error);
-        const tutorSelect = document.getElementById('tutorSelect');
-        tutorSelect.innerHTML = `
-            <option value="" disabled selected>Error loading tutors: ${error.message}</option>
-        `;
-    }
-}
-
-// Add this after your existing loadTutorsForFeedback function
-async function debugTutorRequests() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || !user.id) return;
-
-    try {
-        const response = await fetch(`/api/student/${user.id}/requests`);
-        const requests = await response.json();
-        console.log('All requests:', requests);
-        
-        const acceptedRequests = requests.filter(r => r.status === 'ACCEPTED');
-        console.log('Accepted requests:', acceptedRequests);
-    } catch (error) {
-        console.error('Debug error:', error);
-    }
-}
-
-// Add this function to help debug
-async function debugRequests() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || !user.id) return;
-
-    try {
-        console.log('Fetching requests for user:', user.id);
-        const response = await fetch(`/api/student/${user.id}/requests`);
-        const data = await response.json();
-        console.log('Requests data:', data);
-
-        console.log('Fetching accepted tutors');
-        const tutorsResponse = await fetch(`/api/student/${user.id}/accepted-tutors`);
-        const tutorsData = await tutorsResponse.json();
-        console.log('Accepted tutors data:', tutorsData);
-    } catch (error) {
-        console.error('Debug error:', error);
-    }
-}
-
-// Modify window.onload to include debug
+// Call this when page loads
 window.onload = function() {
     const user = JSON.parse(localStorage.getItem('user'));
     if (!user || user.role !== 'STUDENT') {
@@ -672,51 +690,8 @@ window.onload = function() {
     loadSubjects();
     loadRequests();
     loadTutorsForFeedback();
-    debugRequests(); // Add this line
+    console.log('Initial page load complete');
 }
-
-// Add this to your existing script
-document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const user = JSON.parse(localStorage.getItem('user'));
-  const tutorId = document.getElementById('tutorSelect').value;
-  const rating = document.querySelector('input[name="rating"]:checked')?.value;
-  const comment = document.getElementById('feedbackComment').value;
-  
-  if (!tutorId || !rating || !comment) {
-    alert('Please fill in all fields');
-    return;
-  }
-  
-  try {
-    const response = await fetch('/api/feedback', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        studentId: user.id,
-        tutorId: tutorId,
-        rating: parseInt(rating),
-        comment: comment
-      })
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to submit feedback');
-    }
-    
-    alert('Feedback submitted successfully!');
-    e.target.reset();
-    loadTutorsForFeedback(); // Reload the tutors list
-    
-  } catch (error) {
-    console.error('Error submitting feedback:', error);
-    alert('Failed to submit feedback: ' + error.message);
-  }
-});
   </script>
 </body>
 </html>

@@ -141,4 +141,13 @@ public class StudentRequestService {
         
         studentRequestRepository.deleteById(requestId);
     }
+
+    // Accept a request
+    public StudentRequest acceptRequest(Long requestId, Long tutorId) {
+        StudentRequest request = studentRequestRepository.findById(requestId)
+            .orElseThrow(() -> new RuntimeException("Request not found"));
+        request.setStatus("ACCEPTED");
+        request.setTutorId(tutorId); // <-- THIS IS CRITICAL
+        return studentRequestRepository.save(request);
+    }
 }

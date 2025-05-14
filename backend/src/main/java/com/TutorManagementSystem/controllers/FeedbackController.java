@@ -1,11 +1,13 @@
 package com.TutorManagementSystem.controllers;
 
+import com.TutorManagementSystem.dto.FeedbackDTO;
 import com.TutorManagementSystem.model.Feedback;
 import com.TutorManagementSystem.service.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,17 +37,17 @@ public class FeedbackController {
     @GetMapping("/tutor/{tutorId}")
     public ResponseEntity<?> getTutorFeedback(@PathVariable Long tutorId) {
         try {
-            List<Feedback> feedbacks = feedbackService.getTutorFeedback(tutorId);
+            List<FeedbackDTO> feedbacks = feedbackService.getTutorFeedbackDTOs(tutorId);
             Map<String, Object> summary = feedbackService.getTutorFeedbackSummary(tutorId);
-            
-            Map<String, Object> response = Map.of(
-                "feedbacks", feedbacks,
-                "summary", summary
-            );
-            
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("feedbacks", feedbacks);
+            response.put("summary", summary);
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", e.getMessage()));
         }
     }
 }

@@ -154,6 +154,12 @@
       margin: 0;
       cursor: pointer;
     }
+
+    #qualifications:focus {
+      border-color: #009e8f;
+      background: #f1fcfa;
+      outline: none;
+    }
   </style>
 </head>
 <body>
@@ -204,16 +210,9 @@
       <div id="tutor-fields" class="conditional-fields" style="display: none;">
         <label for="specialization">Field of Specialization</label>
         <input type="text" id="specialization" name="specialization" placeholder="E.g., Mathematics, Physics, etc." />
-        
+
         <label for="qualifications">Qualifications</label>
-        <textarea id="qualifications" name="qualifications" rows="3" placeholder="Your education background, teaching experience, etc."></textarea>
-        
-        <div class="form-group">
-          <label for="subjects">Select Subjects You Can Teach:</label>
-          <div id="subjectCheckboxes" class="subject-checkboxes">
-            <!-- Subjects will be loaded here dynamically -->
-          </div>
-        </div>
+        <input type="text" id="qualifications" name="qualifications" placeholder="E.g., MSc Mathematics, B.Ed, 5 years experience" />
       </div>
       
       <button type="submit">Sign Up</button>
