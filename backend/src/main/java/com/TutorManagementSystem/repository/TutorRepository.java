@@ -12,7 +12,7 @@ public interface TutorRepository extends JpaRepository<Tutor, Long> {
     @Query("SELECT DISTINCT t FROM Tutor t " +
            "LEFT JOIN FETCH t.tutorSubjects ts " +
            "LEFT JOIN FETCH ts.subject " +
-           "WHERE ts.subject.id = :subjectId")
+           "WHERE ts.subject.subjectId = :subjectId")
     List<Tutor> findBySubjectsId(@Param("subjectId") Long subjectId);
 
     @Query("SELECT t FROM Tutor t " +
@@ -21,4 +21,7 @@ public interface TutorRepository extends JpaRepository<Tutor, Long> {
            "LEFT JOIN FETCH t.availabilities " +
            "WHERE t.id = :tutorId")
     Optional<Tutor> findByIdWithSubjects(@Param("tutorId") Long tutorId);
+
+    // Update this method name to match what's being called
+    List<Tutor> findByTutorSubjectsSubjectSubjectId(Long subjectId);
 }

@@ -10,30 +10,17 @@ import java.util.List;
 
 @Repository
 public interface StudentRequestRepository extends JpaRepository<StudentRequest, Long> {
-
-    // Find requests by subject's subjectId
-    List<StudentRequest> findBySubject_SubjectId(Long subjectId);
-
-    // Find all requests by status
-    List<StudentRequest> findByStatus(String status);
-
-    @Query("SELECT r FROM StudentRequest r WHERE r.status = :status AND r.subject.subjectId IN " +
-           "(SELECT ts.subject.subjectId FROM TutorSubject ts WHERE ts.tutor.id = :tutorId) " +
-           "ORDER BY r.createdAt DESC")
-    List<StudentRequest> findByStatusAndTutorIdOrderByCreatedAtDesc(
-        @Param("status") String status, 
-        @Param("tutorId") Long tutorId
-    );
-
-    @Query("SELECT r FROM StudentRequest r WHERE r.status = 'PENDING'")
-    List<StudentRequest> findPendingRequests();
-
-    // Find all requests by student id
     List<StudentRequest> findByStudentId(Long studentId);
-
-    // Find all requests by student id and status
+    
     List<StudentRequest> findByStudentIdAndStatus(Long studentId, String status);
-
+    
+    List<StudentRequest> findByStatusAndTutorIdOrderByCreatedAtDesc(String status, Long tutorId);
+    
+    @Query("SELECT sr FROM StudentRequest sr WHERE sr.student.id = :studentId AND sr.status = :status AND sr.tutorId IS NOT NULL")
+    List<StudentRequest> findByStudentIdAndStatusWithTutor(@Param("studentId") Long studentId, @Param("status") String status);
+    
+    @Query("SELECT sr FROM StudentRequest sr WHERE sr.status = 'PENDING'")
+    List<StudentRequest> findPendingRequests();
 }
 
 

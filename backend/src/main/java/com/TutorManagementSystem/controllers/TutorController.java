@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 @RestController
@@ -210,6 +211,28 @@ public class TutorController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/tutors/subject/{subjectId}")
+    public ResponseEntity<?> getTutorsBySubject(@PathVariable Long subjectId) {
+        try {
+            List<Tutor> tutors = tutorRepository.findBySubjectsId(subjectId);
+            List<Map<String, Object>> tutorList = tutors.stream()
+                .map(tutor -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("id", tutor.getId());
+                    map.put("name", tutor.getName());
+                    map.put("qualifications", tutor.getQualifications());
+                    map.put("specialization", tutor.getSpecialization());
+                    return map;
+                })
+                .collect(Collectors.toList());
+                
+            return ResponseEntity.ok(tutorList);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(new ErrorResponse("Error finding tutors: " + e.getMessage()));
         }
     }
 }

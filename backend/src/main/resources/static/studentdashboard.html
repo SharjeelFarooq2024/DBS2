@@ -1,418 +1,722 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Dashboard</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
-        body {
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        header {
-            margin-bottom: 30px;
-        }
-        header h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        header nav {
-            margin-top: 10px;
-        }
-        section {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        h2 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-        ul#subjects-list {
-            list-style-type: none;
-            padding-left: 1.5rem;
-        }
-        ul#subjects-list li {
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-        select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        .tutor-card {
-            background: white;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .tutor-card h3 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .tutor-card p {
-            margin: 5px 0;
-            color: #666;
-        }
-        .tutor-card .time-slots {
-            margin: 10px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 4px;
-        }
-        .tutor-card .time-slots h4 {
-            margin-bottom: 5px;
-            color: #2c3e50;
-        }
-        .tutor-card .time-slots ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-        .tutor-card .time-slots li {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #666;
-        }
-        button {
-            background: #00bfa5;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #009e8f;
-        }
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 500px;
-            width: 90%;
-        }
-        .request-form {
-            margin-top: 15px;
-        }
-        .request-form textarea {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            min-height: 100px;
-        }
-        .request-status {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            background: #f8f9fa;
-        }
-        .request-item {
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .request-item.accepted {
-            border-left: 4px solid #4caf50;
-        }
-        .request-item.pending {
-            border-left: 4px solid #ffc107;
-        }
-        .request-item.rejected {
-            border-left: 4px solid #f44336;
-        }
-        .request-item h4 {
-            margin: 0 0 10px;
-            color: #2c3e50;
-        }
-        .request-item p {
-            margin: 5px 0;
-            color: #666;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: #fdf7f2;
+      color: #222;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-weight: 700;
+      font-size: 28px;
+      color: #00bfa5;
+    }
+
+    nav {
+      margin-top: 10px;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #555;
+      margin: 0 15px;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #00bfa5;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    section {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 15px;
+      color: #00bfa5;
+    }
+
+    ul {
+      list-style: none;
+      padding-left: 1rem;
+    }
+
+    ul li {
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #444;
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .tutor-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: transform 0.2s ease;
+    }
+
+    .tutor-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .tutor-card h3 {
+        color: #00bfa5;
+        margin-bottom: 10px;
+        font-size: 1.2em;
+    }
+
+    .tutor-card p {
+        margin: 5px 0;
+        color: #666;
+    }
+
+    .tutor-card strong {
+        color: #444;
+    }
+
+    .tutor-actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .request-button {
+        background-color: #00bfa5;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .request-button:hover {
+        background-color: #00a693;
+    }
+
+    .no-tutors, .error-message {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .error-message {
+        background-color: #fff5f5;
+        border: 1px solid #ffe0e0;
+    }
+
+    .request-item {
+      background: #fff;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+    }
+
+    .request-item.pending {
+      background: #fff3e0;
+      border-color: #ffe0b2;
+    }
+
+    .request-item.accepted {
+      background: #e8f5e9;
+      border-color: #c8e6c9;
+    }
+
+    .request-item.rejected {
+      background: #ffebee;
+      border-color: #ffcdd2;
+    }
+
+    .status-pending {
+      color: #f57c00;
+      font-weight: bold;
+    }
+
+    .status-accepted {
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .status-rejected {
+      color: #c62828;
+      font-weight: bold;
+    }
+
+    /* Add these to your existing styles */
+    .find-and-request {
+        background: #fff;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    .tutors-list {
+        margin: 20px 0;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .select-tutor-btn {
+        background-color: #00bfa5;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .select-tutor-btn:hover {
+        background-color: #00a693;
+    }
+
+    .request-details {
+        border-top: 1px solid #eee;
+        margin-top: 20px;
+        padding-top: 20px;
+    }
+
+    .submit-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.2s ease;
+    }
+
+    .submit-button:hover {
+        background-color: #45a049;
+    }
+
+    .feedback-form {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .feedback-section {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      margin-top: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .star-rating {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+      gap: 5px;
+    }
+
+    .star-rating input {
+      display: none;
+    }
+
+    .star-rating label {
+      cursor: pointer;
+      font-size: 25px;
+      color: #ddd;
+      transition: color 0.2s ease;
+    }
+
+    .star-rating input:checked ~ label {
+      color: #ffd700;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+      color: #ffd700;
+    }
+
+    textarea#feedbackComment {
+      width: 100%;
+      min-height: 100px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      resize: vertical;
+    }
+
+    @media (max-width: 600px) {
+      nav a {
+        display: block;
+        margin: 10px 0;
+      }
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <h1>Student Dashboard</h1>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="studentdashboard.html">Dashboard</a>
-            <a href="logout.html">Logout</a>
-        </nav>
-    </header>
+  <header>
+    <h1>Student Dashboard</h1>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="studentdashboard.html">Dashboard</a>
+      <a href="logout.html">Logout</a>
+    </nav>
+  </header>
 
-    <main id="student-dashboard">
-        <section class="request-status">
-            <h2>My Tutoring Requests</h2>
-            <div id="requestsList">
-                <!-- Requests will be loaded here -->
+  <main id="student-dashboard">
+    <section class="request-status">
+      <h2>My Tutoring Requests</h2>
+      <div id="requestsList">
+        <!-- Requests will be dynamically loaded here -->
+      </div>
+    </section>
+
+    <section>
+      <h2>Current Subjects</h2>
+      <ul id="subjects-list">
+        <li>Loading subjects...</li>
+      </ul>
+    </section>
+
+    <!-- Replace both the subject-selector and create-request sections with this: -->
+    <section class="find-and-request">
+      <h2>Find Tutors</h2>
+      <select id="requestSubject" onchange="loadTutorsForSubject()">
+        <option value="">Select a subject...</option>
+      </select>
+      
+      <div id="tutorsList" class="tutors-list">
+        <!-- Tutors will be loaded here -->
+      </div>
+
+      <div id="requestDetails" class="request-details" style="display: none;">
+        <h3>Request Details</h3>
+        <textarea id="requestDescription" placeholder="Describe what you need help with..."></textarea>
+        <button onclick="createTutoringRequest()" class="submit-button">Submit Request</button>
+      </div>
+    </section>
+
+    <!-- Add this inside the main section -->
+    <section class="feedback-section">
+      <h2>Give Feedback</h2>
+      <form id="feedbackForm" class="feedback-form">
+        <div class="form-group">
+          <label for="tutorSelect">Select Tutor:</label>
+          <select id="tutorSelect" required>
+            <option value="">Select a tutor...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Rating:</label>
+          <div class="star-rating">
+            <input type="radio" name="rating" value="5" id="rate5" required><label for="rate5">★</label>
+            <input type="radio" name="rating" value="4" id="rate4"><label for="rate4">★</label>
+            <input type="radio" name="rating" value="3" id="rate3"><label for="rate3">★</label>
+            <input type="radio" name="rating" value="2" id="rate2"><label for="rate2">★</label>
+            <input type="radio" name="rating" value="1" id="rate1"><label for="rate1">★</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="feedbackComment">Your Feedback:</label>
+          <textarea id="feedbackComment" required placeholder="Write your feedback here..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-button">Submit Feedback</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- Add this script at the end of the body tag -->
+  <script>
+  // Function to create a tutoring request
+ async function createTutoringRequest() {
+    const subjectSelect = document.getElementById('requestSubject');
+    const description = document.getElementById('requestDescription').value;
+    const requestDetails = document.getElementById('requestDetails');
+    const tutorId = requestDetails.dataset.tutorId;
+    
+    if (!subjectSelect.value || !description || !tutorId) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) {
+        alert('Please log in first');
+        window.location.href = '/login.html';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/student-request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                studentId: user.id,
+                tutorId: tutorId,
+                subjectId: subjectSelect.value,
+                description: description,
+                status: 'PENDING'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create request');
+        }
+
+        const result = await response.json();
+        alert('Request sent successfully!');
+        requestDetails.style.display = 'none';
+        document.getElementById('requestDescription').value = '';
+        loadTutorsForSubject(); // Refresh the tutors list
+    } catch (error) {
+        console.error('Error creating request:', error);
+        alert('Failed to create request: ' + error.message);
+    }
+}
+
+// Update the loadSubjects function to populate both dropdowns
+async function loadSubjects() {
+    try {
+        const response = await fetch('/api/student/subjects');
+        if (!response.ok) {
+            throw new Error('Failed to load subjects');
+        }
+
+        const subjects = await response.json();
+        const subjectSelect = document.getElementById('requestSubject');
+        
+        // Clear existing options
+        subjectSelect.innerHTML = '<option value="">Select a subject</option>';
+        
+        // Add new options
+        subjects.forEach(subject => {
+            const option = document.createElement('option');
+            option.value = subject.subjectId;
+            option.textContent = subject.name;
+            subjectSelect.appendChild(option);
+        });
+
+        // Also populate the find tutor dropdown if it exists
+        const findTutorSelect = document.getElementById('subjectSelect');
+        if (findTutorSelect) {
+            findTutorSelect.innerHTML = '<option value="">Select a subject...</option>';
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject.subjectId;
+                option.textContent = subject.name;
+                findTutorSelect.appendChild(option);
+            });
+        }
+
+    } catch (error) {
+        console.error('Error loading subjects:', error);
+        document.getElementById('requestSubject').innerHTML = 
+            '<option value="">Error loading subjects</option>';
+        if (document.getElementById('subjectSelect')) {
+            document.getElementById('subjectSelect').innerHTML = 
+                '<option value="">Error loading subjects</option>';
+        }
+    }
+}
+
+// Call this when page loads
+window.onload = function() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'STUDENT') {
+        window.location.href = '/login.html';
+        return;
+    }
+    loadSubjects();
+    loadRequests();
+    loadTutorsForFeedback();
+    debugRequests(); // Add this line
+}
+
+// Update the loadRequests function, remove the feedback section
+async function loadRequests() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) return;
+
+    try {
+        const response = await fetch(`/api/student/${user.id}/requests`);
+        if (!response.ok) {
+            throw new Error('Failed to load requests');
+        }
+
+        const requests = await response.json();
+        const requestsList = document.getElementById('requestsList');
+
+        if (requests.length === 0) {
+            requestsList.innerHTML = '<p>No requests found</p>';
+            return;
+        }
+
+        requestsList.innerHTML = requests.map(request => `
+            <div class="request-item ${request.status.toLowerCase()}">
+                <p><strong>Subject:</strong> ${request.subject}</p>
+                <p><strong>Status:</strong> <span class="status-${request.status.toLowerCase()}">${request.status}</span></p>
+                <p><strong>Description:</strong> ${request.description}</p>
+                <p><strong>Created:</strong> ${new Date(request.createdAt).toLocaleString()}</p>
+                ${request.tutorName ? `<p><strong>Tutor:</strong> ${request.tutorName}</p>` : ''}
+                ${request.status === 'PENDING' ? 
+                    `<button onclick="cancelRequest(${request.requestId})" class="cancel-btn">
+                        Cancel Request
+                    </button>` 
+                    : ''}
             </div>
-        </section>
+        `).join('');
 
-        <section>
-            <h2>Current Subjects</h2>
-            <ul id="subjects-list">
-                <li>Loading subjects...</li>
-            </ul>
-        </section>
+    } catch (error) {
+        console.error('Error loading requests:', error);
+        document.getElementById('requestsList').innerHTML = 
+            `<p class="error-message">Error loading requests: ${error.message}</p>`;
+    }
+}
 
-        <section class="subject-selector">
-            <h2>Find Tutors</h2>
-            <select id="subjectSelect" onchange="loadTutors()">
-                <option value="">Select a subject...</option>
-            </select>
-        </section>
+// Replace loadTutors and createTutoringRequest with these unified functions:
+async function loadTutorsForSubject() {
+    const subjectId = document.getElementById('requestSubject').value;
+    const tutorsList = document.getElementById('tutorsList');
+    
+    if (!subjectId) {
+        tutorsList.innerHTML = '<p>Please select a subject</p>';
+        return;
+    }
 
-        <section class="tutor-list">
-            <h2>Available Tutors</h2>
-            <div id="tutorsList">
-                <!-- Tutors will be loaded here -->
-            </div>
-        </section>
-    </main>
+    try {
+        const response = await fetch(`/api/tutors/subject/${subjectId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch tutors');
+        }
+        const tutors = await response.json();
+        
+        tutorsList.innerHTML = '';
 
-    <script>
-        const studentId = JSON.parse(localStorage.getItem('user'))?.id || 1;
-
-        async function fetchCurrentSubjects() {
-            try {
-                const response = await fetch(`/api/student-dashboard/current-subjects/${studentId}`);
-                if (response.ok) {
-                    const subjects = await response.json();
-                    const subjectsList = document.getElementById('subjects-list');
-                    subjectsList.innerHTML = '';
-                    if (subjects.length === 0) {
-                        subjectsList.innerHTML = '<li>No current subjects found.</li>';
-                    } else {
-                        subjects.forEach(subject => {
-                            const li = document.createElement('li');
-                            li.textContent = subject.name + (subject.description ? ': ' + subject.description : '');
-                            subjectsList.appendChild(li);
-                        });
-                    }
-                } else {
-                    document.getElementById('subjects-list').innerHTML = '<li>Error loading subjects.</li>';
-                }
-            } catch (error) {
-                console.error('Error loading subjects:', error);
-                document.getElementById('subjects-list').innerHTML = '<li>Error loading subjects.</li>';
-            }
+        if (tutors.length === 0) {
+            tutorsList.innerHTML = '<p class="no-tutors">No tutors available for this subject</p>';
+            return;
         }
 
-        async function loadSubjects() {
-            try {
-                const response = await fetch('/api/subjects');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch subjects');
-                }
-                const subjects = await response.json();
-                const select = document.getElementById('subjectSelect');
-                select.innerHTML = '<option value="">Select a subject...</option>';
-                if (Array.isArray(subjects)) {
-                    subjects.forEach(subject => {
-                        const option = document.createElement('option');
-                        option.value = subject.subjectId;
-                        option.textContent = subject.name;
-                        select.appendChild(option);
-                    });
-                } else {
-                    throw new Error('Invalid subjects data received');
-                }
-            } catch (error) {
-                console.error('Error loading subjects:', error);
-                const errorMsg = document.createElement('p');
-                errorMsg.className = 'error-message';
-                errorMsg.textContent = 'Failed to load subjects: ' + error.message;
-                document.getElementById('subjectSelect').parentNode.appendChild(errorMsg);
-            }
-        }
-
-        async function loadTutors() {
-            const subjectId = document.getElementById('subjectSelect').value;
-            if (!subjectId) {
-                document.getElementById('tutorsList').innerHTML = '<p>Please select a subject</p>';
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/tutors?subject=${subjectId}`);
-                const tutors = await response.json();
-                const tutorsList = document.getElementById('tutorsList');
-                tutorsList.innerHTML = '';
-
-                if (tutors.length === 0) {
-                    tutorsList.innerHTML = '<p>No tutors available for this subject</p>';
-                    return;
-                }
-
-                for (const tutor of tutors) {
-                    const profileResponse = await fetch(`/api/tutor/${tutor.id}/profile`);
-                    const profile = await profileResponse.json();
-                    
-                    const tutorCard = document.createElement('div');
-                    tutorCard.className = 'tutor-card';
-                    tutorCard.innerHTML = `
-                        <h3>${tutor.name}</h3>
-                        <p><strong>Qualifications:</strong> ${tutor.qualifications || 'Not specified'}</p>
-                        <p><strong>Specialization:</strong> ${tutor.specialization || 'Not specified'}</p>
-                        <div class="time-slots">
-                            <h4>Available Time Slots:</h4>
-                            <ul>
-                                ${profile.availability.map(slot => 
-                                    `<li>${slot.dayOfWeek}: ${slot.timeSlot}</li>`
-                                ).join('')}
-                            </ul>
-                        </div>
-                        <button onclick="showRequestForm(${tutor.id}, '${tutor.name}')">Request Tutor</button>
-                    `;
-                    tutorsList.appendChild(tutorCard);
-                }
-            } catch (error) {
-                console.error('Error loading tutors:', error);
-                tutorsList.innerHTML = '<p>Error loading tutors</p>';
-            }
-        }
-
-        async function fetchStudentRequests() {
-            try {
-                const response = await fetch(`/api/student/${studentId}/requests`);
-                if (!response.ok) {
-                    throw new Error('Failed to fetch requests');
-                }
-                const requests = await response.json();
-                const requestsList = document.getElementById('requestsList');
-                requestsList.innerHTML = '';
-
-                if (requests.length === 0) {
-                    requestsList.innerHTML = '<p>No tutoring requests found.</p>';
-                    return;
-                }
-
-                requests.forEach(request => {
-                    const requestCard = document.createElement('div');
-                    requestCard.className = `request-item ${request.status.toLowerCase()}`;
-                    requestCard.innerHTML = `
-                        <h4>${request.subject}</h4>
-                        <p><strong>Status:</strong> ${request.status}</p>
-                        <p><strong>Description:</strong> ${request.description}</p>
-                        <p><strong>Submitted:</strong> ${new Date(request.createdAt).toLocaleDateString()}</p>
-                        ${request.status === 'ACCEPTED' ? 
-                            `<p><strong>Tutor:</strong> ${request.tutorName}</p>` : ''}
-                    `;
-                    requestsList.appendChild(requestCard);
-                });
-            } catch (error) {
-                console.error('Error fetching requests:', error);
-                document.getElementById('requestsList').innerHTML = 
-                    '<p>Error loading requests. Please try again later.</p>';
-            }
-        }
-
-        function showRequestForm(tutorId, tutorName) {
-            const subjectId = document.getElementById('subjectSelect').value;
-            const subjectName = document.getElementById('subjectSelect').options[document.getElementById('subjectSelect').selectedIndex].text;
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <h3>Request Tutor - ${tutorName}</h3>
-                    <p>Subject: ${subjectName}</p>
-                    <div class="request-form">
-                        <textarea id="requestDescription" placeholder="Describe what you need help with..."></textarea>
-                        <button onclick="submitRequest(${tutorId}, ${subjectId})">Submit Request</button>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #dc3545;">Cancel</button>
-                    </div>
+        tutors.forEach(tutor => {
+            const tutorCard = document.createElement('div');
+            tutorCard.className = 'tutor-card';
+            tutorCard.innerHTML = `
+                <h3>${tutor.name}</h3>
+                <p><strong>Qualifications:</strong> ${tutor.qualifications || 'Not specified'}</p>
+                <p><strong>Specialization:</strong> ${tutor.specialization || 'Not specified'}</p>
+                <div class="tutor-actions">
+                    <button onclick="selectTutor(${tutor.id})" class="request-button">Select Tutor</button>
                 </div>
             `;
-            document.body.appendChild(modal);
+            tutorsList.appendChild(tutorCard);
+        });
+    } catch (error) {
+        console.error('Error loading tutors:', error);
+        tutorsList.innerHTML = '<p class="error-message">Error loading tutors. Please try again later.</p>';
+    }
+}
+
+function selectTutor(tutorId) {
+    const requestDetails = document.getElementById('requestDetails');
+    requestDetails.style.display = 'block';
+    requestDetails.dataset.tutorId = tutorId;
+    document.getElementById('requestDescription').focus();
+}
+
+// Add this to your existing script section
+async function loadTutorsForFeedback() {
+    try {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.id) {
+            console.error('User not logged in');
+            return;
         }
 
-        async function submitRequest(tutorId, subjectId) {
-            const description = document.getElementById('requestDescription').value;
-            if (!description) {
-                alert('Please provide a description of what you need help with');
-                return;
-            }
-
-            try {
-                const requestData = {
-                    tutorId: tutorId,
-                    subjectId: subjectId,
-                    studentId: studentId,
-                    description: description,
-                    status: 'PENDING'
-                };
-
-                const response = await fetch('/api/student-request', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
-
-                if (!response.ok) {
-                    let errorMessage;
-                    try {
-                        const errorData = await response.json();
-                        errorMessage = errorData.error || 'Failed to send request';
-                    } catch (parseError) {
-                        errorMessage = 'Failed to send request: Server error';
-                    }
-                    throw new Error(errorMessage);
-                }
-
-                const data = await response.json();
-                alert('Request sent successfully!');
-                document.querySelector('.modal').remove();
-                fetchStudentRequests(); // Refresh the requests list
-            } catch (error) {
-                console.error('Error submitting request:', error);
-                alert(error.message);
-            }
+        const response = await fetch(`/api/student/${user.id}/accepted-tutors`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const tutors = await response.json();
+        console.log('Loaded tutors:', tutors); // Debug log
 
-        // Initialize dashboard
-        window.onload = function() {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user || user.role !== 'STUDENT') {
-                window.location.href = '/login.html';
-                return;
-            }
-            fetchCurrentSubjects();
-            loadSubjects();
-            fetchStudentRequests();
-        };
-    </script>
+        const tutorSelect = document.getElementById('tutorSelect');
+        tutorSelect.innerHTML = '<option value="">Select a tutor...</option>';
+
+        if (tutors && tutors.length > 0) {
+            tutors.forEach(tutor => {
+                const option = document.createElement('option');
+                option.value = tutor.id;
+                option.textContent = tutor.name;
+                tutorSelect.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.disabled = true;
+            option.textContent = 'No tutors available for feedback';
+            tutorSelect.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error loading tutors for feedback:', error);
+        const tutorSelect = document.getElementById('tutorSelect');
+        tutorSelect.innerHTML = `
+            <option value="" disabled selected>Error loading tutors: ${error.message}</option>
+        `;
+    }
+}
+
+// Add this after your existing loadTutorsForFeedback function
+async function debugTutorRequests() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) return;
+
+    try {
+        const response = await fetch(`/api/student/${user.id}/requests`);
+        const requests = await response.json();
+        console.log('All requests:', requests);
+        
+        const acceptedRequests = requests.filter(r => r.status === 'ACCEPTED');
+        console.log('Accepted requests:', acceptedRequests);
+    } catch (error) {
+        console.error('Debug error:', error);
+    }
+}
+
+// Add this function to help debug
+async function debugRequests() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) return;
+
+    try {
+        console.log('Fetching requests for user:', user.id);
+        const response = await fetch(`/api/student/${user.id}/requests`);
+        const data = await response.json();
+        console.log('Requests data:', data);
+
+        console.log('Fetching accepted tutors');
+        const tutorsResponse = await fetch(`/api/student/${user.id}/accepted-tutors`);
+        const tutorsData = await tutorsResponse.json();
+        console.log('Accepted tutors data:', tutorsData);
+    } catch (error) {
+        console.error('Debug error:', error);
+    }
+}
+
+// Modify window.onload to include debug
+window.onload = function() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'STUDENT') {
+        window.location.href = '/login.html';
+        return;
+    }
+    loadSubjects();
+    loadRequests();
+    loadTutorsForFeedback();
+    debugRequests(); // Add this line
+}
+
+// Add this to your existing script
+document.getElementById('feedbackForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const user = JSON.parse(localStorage.getItem('user'));
+  const tutorId = document.getElementById('tutorSelect').value;
+  const rating = document.querySelector('input[name="rating"]:checked')?.value;
+  const comment = document.getElementById('feedbackComment').value;
+  
+  if (!tutorId || !rating || !comment) {
+    alert('Please fill in all fields');
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        studentId: user.id,
+        tutorId: tutorId,
+        rating: parseInt(rating),
+        comment: comment
+      })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to submit feedback');
+    }
+    
+    alert('Feedback submitted successfully!');
+    e.target.reset();
+    loadTutorsForFeedback(); // Reload the tutors list
+    
+  } catch (error) {
+    console.error('Error submitting feedback:', error);
+    alert('Failed to submit feedback: ' + error.message);
+  }
+});
+  </script>
 </body>
 </html>

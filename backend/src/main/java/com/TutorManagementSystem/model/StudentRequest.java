@@ -15,9 +15,8 @@ public class StudentRequest {
     @JoinColumn(name = "student_id", nullable = false)
     private Student student;
 
-    @ManyToOne
-    @JoinColumn(name = "subject_id", nullable = false)
-    private Subject subject;
+    @Column(name = "tutor_id")
+    private Long tutorId;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
@@ -27,6 +26,10 @@ public class StudentRequest {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "subject_id", nullable = false)
+    private Subject subject;
 
     public StudentRequest() {}
 
@@ -42,8 +45,13 @@ public class StudentRequest {
     public Student getStudent() { return student; }
     public void setStudent(Student student) { this.student = student; }
 
-    public Subject getSubject() { return subject; }
-    public void setSubject(Subject subject) { this.subject = subject; }
+    public Long getTutorId() { 
+        return tutorId; 
+    }
+    
+    public void setTutorId(Long tutorId) { 
+        this.tutorId = tutorId; 
+    }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -53,4 +61,12 @@ public class StudentRequest {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public Subject getSubject() { 
+        return subject; 
+    }
+    
+    public void setSubject(Subject subject) { 
+        this.subject = subject; 
+    }
 }

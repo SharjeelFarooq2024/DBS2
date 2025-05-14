@@ -129,6 +129,31 @@
       padding-top: 15px;
       border-top: 1px solid #eee;
     }
+
+    .subject-checkboxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .subject-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .subject-checkbox input[type="checkbox"] {
+      margin: 0;
+    }
+
+    .subject-checkbox label {
+      margin: 0;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -182,6 +207,13 @@
         
         <label for="qualifications">Qualifications</label>
         <textarea id="qualifications" name="qualifications" rows="3" placeholder="Your education background, teaching experience, etc."></textarea>
+        
+        <div class="form-group">
+          <label for="subjects">Select Subjects You Can Teach:</label>
+          <div id="subjectCheckboxes" class="subject-checkboxes">
+            <!-- Subjects will be loaded here dynamically -->
+          </div>
+        </div>
       </div>
       
       <button type="submit">Sign Up</button>
@@ -245,6 +277,10 @@
         const qualificationsInput = document.getElementById('qualifications');
         formData.specialization = specializationInput ? specializationInput.value : '';
         formData.qualifications = qualificationsInput ? qualificationsInput.value : '';
+
+        const selectedSubjects = Array.from(document.querySelectorAll('input[name="subjects"]:checked'))
+          .map(checkbox => parseInt(checkbox.value));
+        formData.subjects = selectedSubjects;
       }
 
       console.log('Submitting Form Data:', formData); // For debugging
@@ -272,6 +308,32 @@
           alert(error.message || 'An unexpected error occurred during registration.');
       }
     });
+
+    // Load subjects when page loads
+    async function loadSubjects() {
+        try {
+            const response = await fetch('/api/subjects');
+            if (!response.ok) throw new Error('Failed to load subjects');
+            
+            const subjects = await response.json();
+            const subjectCheckboxes = document.getElementById('subjectCheckboxes');
+            
+            subjectCheckboxes.innerHTML = subjects.map(subject => `
+                <div class="subject-checkbox">
+                    <input type="checkbox" 
+                           id="subject_${subject.subjectId}" 
+                           name="subjects" 
+                           value="${subject.subjectId}">
+                    <label for="subject_${subject.subjectId}">${subject.name}</label>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading subjects:', error);
+        }
+    }
+
+    // Load subjects when page loads
+    document.addEventListener('DOMContentLoaded', loadSubjects);
   </script>
 </body>
 </html>

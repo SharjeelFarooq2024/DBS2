@@ -1,0 +1,19 @@
+// filepath: d:\DBS3\DBS2\backend\src\main\resources\application.properties.example
+# Application name
+spring.application.name=project
+
+# Database connection settings
+spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name?useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.username=your_mysql_username
+spring.datasource.password=your_mysql_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA/Hibernate settings
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.properties.hibernate.format_sql=true
+# spring.jpa.properties.hibernate.type=trace # Optional: uncomment for detailed Hibernate type logging
+
+# Server settings
+server.port=8080

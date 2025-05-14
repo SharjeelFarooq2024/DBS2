@@ -37,6 +37,10 @@ public class StudentRequestService {
 
     // Create a new student request
     public StudentRequest createRequest(StudentRequest request) {
+        // Set initial status if not set
+        if (request.getStatus() == null) {
+            request.setStatus("PENDING");
+        }
         return studentRequestRepository.save(request);
     }
 
@@ -71,11 +75,10 @@ public class StudentRequestService {
     // Get pending requests for a tutor
     public List<StudentRequest> getPendingRequestsForTutor(Long tutorId) {
         try {
-            List<StudentRequest> requests = studentRequestRepository.findByStatusAndTutorIdOrderByCreatedAtDesc("PENDING", tutorId);
-            return requests != null ? requests : new ArrayList<>();
+            return studentRequestRepository.findByStatusAndTutorIdOrderByCreatedAtDesc("PENDING", tutorId);
         } catch (Exception e) {
             e.printStackTrace();
-            return new ArrayList<>(); // Return empty list instead of null on error
+            return new ArrayList<>();
         }
     }
 
@@ -90,6 +93,11 @@ public class StudentRequestService {
     // Get all requests for a student
     public List<StudentRequest> getRequestsByStudentId(Long studentId) {
         return studentRequestRepository.findByStudentId(studentId);
+    }
+
+    // Get requests by student ID and status
+    public List<StudentRequest> getRequestsByStudentIdAndStatus(Long studentId, String status) {
+        return studentRequestRepository.findByStudentIdAndStatusWithTutor(studentId, status);
     }
 
     // Get student name
@@ -120,5 +128,17 @@ public class StudentRequestService {
             }
         }
         return result;
+    }
+
+    // Cancel a request
+    public void cancelRequest(Long requestId) {
+        StudentRequest request = studentRequestRepository.findById(requestId)
+            .orElseThrow(() -> new RuntimeException("Request not found"));
+            
+        if (!"PENDING".equals(request.getStatus())) {
+            throw new RuntimeException("Only pending requests can be cancelled");
+        }
+        
+        studentRequestRepository.deleteById(requestId);
     }
 }

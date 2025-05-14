@@ -5,6 +5,7 @@ import com.TutorManagementSystem.dto.SubjectDTO;
 import com.TutorManagementSystem.dto.StudentRequestDTO;
 import com.TutorManagementSystem.model.*;
 import com.TutorManagementSystem.repository.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
@@ -15,21 +16,20 @@ import java.util.Map;
 
 @Service
 public class TutorService {
+    @Autowired
+    private TutorRepository tutorRepository;
 
     private final SubjectRepository subjectRepository;
     private final AvailabilityRepository availabilityRepository;
     private final StudentRequestRepository studentRequestRepository;
-    private final TutorRepository tutorRepository;
 
     public TutorService(
             SubjectRepository subjectRepository,
             AvailabilityRepository availabilityRepository,
-            StudentRequestRepository studentRequestRepository,
-            TutorRepository tutorRepository) {
+            StudentRequestRepository studentRequestRepository) {
         this.subjectRepository = subjectRepository;
         this.availabilityRepository = availabilityRepository;
         this.studentRequestRepository = studentRequestRepository;
-        this.tutorRepository = tutorRepository;
     }
 
     // Add availability for a tutor
@@ -187,8 +187,8 @@ public class TutorService {
     }
 
     // Find tutors by subject
-    public List<Tutor> findTutorsBySubject(Subject subject) {
-        return tutorRepository.findBySubjectsId(subject.getSubjectId());
+    public List<Tutor> findTutorsBySubject(Long subjectId) {
+        return tutorRepository.findByTutorSubjectsSubjectSubjectId(subjectId);
     }
 
     // Get subjects taught by a tutor
