@@ -56,6 +56,13 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
+            // Email validation - check for @ sign
+            if (!registerRequest.getEmail().contains("@")) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Email must contain an @ sign");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             if (registerRequest.getName() == null || registerRequest.getName().trim().isEmpty()) {
                 Map<String, String> response = new HashMap<>();
                 response.put("error", "Name is required");
@@ -68,6 +75,28 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
+            // Password validation - at least 6 characters with 1 uppercase
+            String password = registerRequest.getPassword();
+            if (password.length() < 6) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Password must be at least 6 characters long");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            boolean hasUppercase = false;
+            for (char c : password.toCharArray()) {
+                if (Character.isUpperCase(c)) {
+                    hasUppercase = true;
+                    break;
+                }
+            }
+
+            if (!hasUppercase) {
+                Map<String, String> response = new HashMap<>();
+                response.put("error", "Password must contain at least one uppercase letter");
+                return ResponseEntity.badRequest().body(response);
+            }
+
             if (registerRequest.getRole() == null || registerRequest.getRole().trim().isEmpty()) {
                 Map<String, String> response = new HashMap<>();
                 response.put("error", "Role is required");
@@ -77,7 +106,7 @@ public class AuthController {
             // Check if user already exists
             if (userRepository.findByEmail(registerRequest.getEmail()).isPresent()) {
                 Map<String, String> response = new HashMap<>();
-                response.put("error", "Email is already registered");
+                response.put("error", "Email already registered");
                 return ResponseEntity.badRequest().body(response);
             }
 

@@ -255,7 +255,29 @@
           alert('Passwords do not match!');
           return;
       }
+      
+      // Add these validation checks:
+      const email = document.getElementById('email').value;
+      
+      // Email validation - check for @ sign
+      if (!email.includes('@')) {
+          alert('Email must contain an @ sign');
+          return;
+      }
+      
+      // Password length validation - minimum 6 characters
+      if (password.length < 6) {
+          alert('Password must be at least 6 characters long');
+          return;
+      }
+      
+      // Password uppercase validation - at least one uppercase letter
+      if (!/[A-Z]/.test(password)) {
+          alert('Password must contain at least one uppercase letter');
+          return;
+      }
 
+      // Continue with existing code...
       const nameInput = document.getElementById('name');
       const emailInput = document.getElementById('email');
       const roleChecked = document.querySelector('input[name="role"]:checked');
