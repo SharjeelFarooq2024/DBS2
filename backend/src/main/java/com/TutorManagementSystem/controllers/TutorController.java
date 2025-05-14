@@ -228,11 +228,10 @@ public class TutorController {
                     return map;
                 })
                 .collect(Collectors.toList());
-                
             return ResponseEntity.ok(tutorList);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                .body(new ErrorResponse("Error finding tutors: " + e.getMessage()));
+                .body(Collections.singletonMap("error", "Error finding tutors: " + e.getMessage()));
         }
     }
 }
